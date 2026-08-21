@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type {
   Organization, Category, Product, Supplier, PurchaseOrder, Bill, PaymentTransaction,
-  Notification, ItemReturn, ReportGenerationLog, Order, Invoice, Customer, CustomerCreditTransaction, Expense, PurchaseItem,
+  Notification, ItemReturn, ReportGenerationLog, Invoice, Customer, CustomerCreditTransaction, Expense, PurchaseItem,
   ActivityLog, Role, UserRole, PlatformConfiguration, PlatformUser, Location,
   ProductImage, ProductImageUploadUrl, ProductSupplier,
   InventoryItem, StockMovement, StockMovementOp, StockOperationBody, StockTransfer, StockTransferRequest,
@@ -206,7 +206,8 @@ export const Notifications = {
 };
 export const ItemReturns = createResource<ItemReturn>('/api/v1/item-returns', 'item-returns', 'Return');
 export const ReportGenerationLogs = createResource<ReportGenerationLog>('/api/v1/report-generation-logs', 'report-generation-logs', 'Report log');
-export const Orders = createCreateOnlyResource<Order>('/api/v1/orders', 'orders', 'Order');
+// Note: the Sales Orders UI (and its `Orders` resource) was removed — Invoices still requires
+// an `orderId` with no in-app way to create/discover one now. See review note on this PR.
 export const Invoices = createCreateOnlyResource<Invoice>('/api/v1/invoices', 'invoices', 'Invoice');
 
 const customersBase = createResource<Customer>('/api/v1/customers', 'customers', 'Customer');

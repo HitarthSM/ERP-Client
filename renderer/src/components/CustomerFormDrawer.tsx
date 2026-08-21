@@ -75,11 +75,14 @@ export function CustomerFormDrawer({ open, onClose, editing, initialName, onSave
     return rule?.defaultCreditLimit != null ? Number(rule.defaultCreditLimit) : 0;
   }, [typeRules, form.customerType]);
 
-  /** Credit fields only for types that use credit (or customers who already have a limit). */
-  const showCreditFields =
-    typeDefaultLimit > 0 ||
-    Number(form.creditLimit) > 0 ||
-    (editing != null && editing.creditLimit != null && Number(editing.creditLimit) > 0);
+  /**
+   * Credit fields only for types that use credit (or a manual override the form currently holds).
+   * `form.creditLimit` is seeded from `editing.creditLimit` on open (see formFromCustomer), so this
+   * already reflects an existing credit customer — do NOT also OR in `editing.creditLimit` directly,
+   * that would keep the fields (and the "clear credit" submit path) stuck on forever, even after the
+   * user clears the input or switches to a non-credit type.
+   */
+  const showCreditFields = typeDefaultLimit > 0 || Number(form.creditLimit) > 0;
 
   const handleCustomerTypeChange = (next: CustomerType) => {
     const nextDefault = Number(

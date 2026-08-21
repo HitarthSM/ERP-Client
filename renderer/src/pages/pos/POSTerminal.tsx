@@ -1265,7 +1265,12 @@ export default function POSTerminal({ mode }: { mode: Mode }) {
           pendingCreditApproval={success.pendingCreditApproval}
           creditBalanceAfter={
             success.receipt.saleType === "credit"
-              ? Number(selectedCustomer?.creditBalance ?? 0) +
+              ? // Use the balance frozen on the receipt at checkout time, not the live
+                // `selectedCustomer` query — that gets invalidated/refetched right after
+                // checkout, and once it resolves (while this modal is still open) it already
+                // reflects the post-transaction balance, so adding the delta again would
+                // double-count it.
+                Number(success.receipt.creditBalance ?? 0) +
                 (success.pendingCreditApproval
                   ? 0
                   : success.receipt.paymentTiming === "half" &&
@@ -1277,7 +1282,7 @@ export default function POSTerminal({ mode }: { mode: Mode }) {
                     : success.receipt.totalAmount)
               : undefined
           }
-          creditLimit={success.receipt.saleType === 'credit' ? selectedCustomer?.creditLimit ?? undefined : undefined}
+          creditLimit={success.receipt.saleType === 'credit' ? success.receipt.creditLimit ?? undefined : undefined}
         />
       )}
 

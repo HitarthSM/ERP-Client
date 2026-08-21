@@ -193,7 +193,10 @@ export function useAddUnpublishedStock() {
   return useMutation({
     mutationFn: (body: { locationId: string; productId: string; quantity: number; unitCost?: number; notes?: string }) =>
       post('/api/v1/unpublished-stock/add', body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['unpublished-stock'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unpublished-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    },
   });
 }
 
