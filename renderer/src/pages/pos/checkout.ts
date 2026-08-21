@@ -43,6 +43,7 @@ export interface PosReceipt {
   paymentReference?: string;
   saleType?: SaleType | string;
   paymentTiming?: PaymentTiming | string;
+  partialAmount?: number;
   creditLimit?: number;
   creditBalance?: number;
   delivery?: DeliveryInfo;
@@ -287,6 +288,7 @@ export async function createDraftSale(input: SalesCheckoutInput): Promise<DraftS
     paymentReference: input.paymentReference?.trim() || undefined,
     saleType: input.saleType,
     paymentTiming: input.paymentTiming,
+    partialAmount: input.paymentTiming === 'half' ? input.partialAmount : undefined,
     creditLimit: input.creditLimit,
     creditBalance: input.creditBalance,
     delivery: input.delivery,

@@ -83,6 +83,15 @@ export default function UserRolesPage(): React.JSX.Element {
 
   return (
     <div className="space-y-4">
+      {assignments.length === 0 && !isLoading && !error && (
+        <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          No store-scoped role assignments yet. Organisation roles like{' '}
+          <span className="font-medium text-foreground">Org Admin</span> come from{' '}
+          <span className="font-medium text-foreground">Users</span> (Clerk), not this table.
+          Use <span className="font-medium text-foreground">+ New Assignment</span> only when someone
+          needs an extra role for a specific store.
+        </p>
+      )}
       <DataTable<UserRole>
         title="User Role Assignments"
         description="Manage which roles are assigned to each user in your organisation."

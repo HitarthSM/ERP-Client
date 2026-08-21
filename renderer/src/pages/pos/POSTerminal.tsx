@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Check, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { CustomerDetailDrawer } from "../../components/CustomerDetailDrawer";
@@ -340,9 +341,10 @@ export default function POSTerminal({ mode }: { mode: Mode }) {
 
   const debouncedCustomerInfo = useDebounce(customerInfo, 300);
 
+  const queryClient = useQueryClient();
   const { data: locations = [], isLoading: locationsLoading } =
     Locations.useList();
-  const { data: inventory = [] } = Inventory.useList();
+  const { data: inventory = [], refetch: refetchInventory } = Inventory.useList();
   const { data: suppliers = [] } = Suppliers.useList(mode === "purchase");
   const { data: productSearch } = Products.useSearch({
     page: 1,
@@ -754,6 +756,13 @@ export default function POSTerminal({ mode }: { mode: Mode }) {
 
       setCheckoutResult(result);
       if (result.primaryOk) {
+        // Server deducts stock / updates credit on COMPLETED — refresh cached lists.
+        void queryClient.invalidateQueries({ queryKey: ["inventory"] });
+        void queryClient.invalidateQueries({ queryKey: ["stock-movements"] });
+        void queryClient.invalidateQueries({ queryKey: ["bills"] });
+        void queryClient.invalidateQueries({ queryKey: ["customers"] });
+        void refetchInventory();
+        void refetchSelectedCustomer();
         setPrintDoc("receipt");
         setLastReceipt(result.receipt);
         setSuccess({
@@ -1254,7 +1263,20 @@ export default function POSTerminal({ mode }: { mode: Mode }) {
           onPrintDoc={handlePrintDoc}
           onClose={closeSuccess}
           pendingCreditApproval={success.pendingCreditApproval}
-          creditBalanceAfter={success.receipt.saleType === 'credit' ? selectedCustomer?.creditBalance : undefined}
+          creditBalanceAfter={
+            success.receipt.saleType === "credit"
+              ? Number(selectedCustomer?.creditBalance ?? 0) +
+                (success.pendingCreditApproval
+                  ? 0
+                  : success.receipt.paymentTiming === "half" &&
+                      Number(success.receipt.partialAmount) > 0
+                    ? Math.max(
+                        0,
+                        success.receipt.totalAmount - Number(success.receipt.partialAmount),
+                      )
+                    : success.receipt.totalAmount)
+              : undefined
+          }
           creditLimit={success.receipt.saleType === 'credit' ? selectedCustomer?.creditLimit ?? undefined : undefined}
         />
       )}

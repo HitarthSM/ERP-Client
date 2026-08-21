@@ -97,7 +97,7 @@ export const MODULES: ModuleGroup[] = [
       { key: 'black-ledger', title: 'Black Ledger', path: '/black-ledger', icon: Wallet },
       { key: 'customers', title: 'Customers', path: '/customers', icon: Users2 },
       // { key: 'quotations', title: 'Quotations', path: '/sales/quotations', icon: FileText, disabled: true },
-      { key: 'orders', title: 'Sales Orders', path: '/orders', icon: ClipboardList },
+      // { key: 'orders', title: 'Sales Orders', path: '/orders', icon: ClipboardList },
       // { key: 'dispatch', title: 'Dispatch', path: '/sales/dispatch', icon: Truck, disabled: true },
       // { key: 'invoices', title: 'Invoices', path: '/invoices', icon: Receipt },
       // { key: 'sales-returns', title: 'Returns', path: '/item-returns', icon: RotateCcw },

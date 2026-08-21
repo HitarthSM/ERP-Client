@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormDrawer, Field } from './FormDrawer';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -70,6 +70,30 @@ export function CustomerFormDrawer({ open, onClose, editing, initialName, onSave
     setForm(editing ? formFromCustomer(editing) : emptyForm(initialName));
   }, [open, editing, initialName]);
 
+  const typeDefaultLimit = useMemo(() => {
+    const rule = typeRules.find((r) => r.customerType === form.customerType);
+    return rule?.defaultCreditLimit != null ? Number(rule.defaultCreditLimit) : 0;
+  }, [typeRules, form.customerType]);
+
+  /** Credit fields only for types that use credit (or customers who already have a limit). */
+  const showCreditFields =
+    typeDefaultLimit > 0 ||
+    Number(form.creditLimit) > 0 ||
+    (editing != null && editing.creditLimit != null && Number(editing.creditLimit) > 0);
+
+  const handleCustomerTypeChange = (next: CustomerType) => {
+    const nextDefault = Number(
+      typeRules.find((r) => r.customerType === next)?.defaultCreditLimit ?? 0,
+    );
+    setForm((f) => ({
+      ...f,
+      customerType: next,
+      ...(nextDefault <= 0
+        ? { creditLimit: '', skipOverLimitApproval: '' as const }
+        : {}),
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return;
@@ -81,10 +105,14 @@ export function CustomerFormDrawer({ open, onClose, editing, initialName, onSave
       email: form.email.trim() || undefined,
       phone: form.phone.trim() || undefined,
       gstin: form.gstin.trim() || undefined,
-      creditLimit: trimmedCreditLimit ? Number(trimmedCreditLimit) : undefined,
+      creditLimit: showCreditFields && trimmedCreditLimit ? Number(trimmedCreditLimit) : showCreditFields ? undefined : null,
       customerType: form.customerType,
       discountPercent: trimmedDiscount === '' ? null : Number(trimmedDiscount),
-      skipOverLimitApproval: form.skipOverLimitApproval === '' ? null : form.skipOverLimitApproval === 'true',
+      skipOverLimitApproval: !showCreditFields
+        ? null
+        : form.skipOverLimitApproval === ''
+          ? null
+          : form.skipOverLimitApproval === 'true',
     };
 
     if (editing) {
@@ -123,24 +151,10 @@ export function CustomerFormDrawer({ open, onClose, editing, initialName, onSave
         <Field label="GSTIN">
           <Input value={form.gstin} onChange={(e) => setForm({ ...form, gstin: e.target.value })} />
         </Field>
-        <Field label="Credit Limit">
-          <Input
-            type="number"
-            min="0"
-            step="0.01"
-            value={form.creditLimit}
-            onChange={(e) => setForm({ ...form, creditLimit: e.target.value })}
-            placeholder={
-              typeRules.find((r) => r.customerType === form.customerType)?.defaultCreditLimit != null
-                ? `Type default: ${typeRules.find((r) => r.customerType === form.customerType)?.defaultCreditLimit}`
-                : undefined
-            }
-          />
-        </Field>
         <Field label="Customer Type">
           <select
             value={form.customerType}
-            onChange={(e) => setForm({ ...form, customerType: e.target.value as CustomerType })}
+            onChange={(e) => handleCustomerTypeChange(e.target.value as CustomerType)}
             className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-card outline-none focus:border-primary"
           >
             {CUSTOMER_TYPE_OPTIONS.map((o) => (
@@ -150,6 +164,20 @@ export function CustomerFormDrawer({ open, onClose, editing, initialName, onSave
             ))}
           </select>
         </Field>
+        {showCreditFields && (
+          <Field label="Credit Limit">
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.creditLimit}
+              onChange={(e) => setForm({ ...form, creditLimit: e.target.value })}
+              placeholder={
+                typeDefaultLimit > 0 ? `Type default: ${typeDefaultLimit}` : undefined
+              }
+            />
+          </Field>
+        )}
         <Field label="Discount % override">
           <Input
             type="number"
@@ -161,17 +189,19 @@ export function CustomerFormDrawer({ open, onClose, editing, initialName, onSave
             placeholder="Inherit from type"
           />
         </Field>
-        <Field label="Skip over-limit approval">
-          <select
-            value={form.skipOverLimitApproval}
-            onChange={(e) => setForm({ ...form, skipOverLimitApproval: e.target.value as FormState['skipOverLimitApproval'] })}
-            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-card outline-none focus:border-primary"
-          >
-            <option value="">Inherit from type</option>
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-          </select>
-        </Field>
+        {showCreditFields && (
+          <Field label="Skip over-limit approval">
+            <select
+              value={form.skipOverLimitApproval}
+              onChange={(e) => setForm({ ...form, skipOverLimitApproval: e.target.value as FormState['skipOverLimitApproval'] })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-card outline-none focus:border-primary"
+            >
+              <option value="">Inherit from type</option>
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </Field>
+        )}
       </form>
     </FormDrawer>
   );

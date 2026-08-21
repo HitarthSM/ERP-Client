@@ -43,7 +43,7 @@ export function SalesOrderHeader({
     <header className="flex flex-shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-card px-4 py-2">
       <div className="flex min-w-0 flex-wrap items-center gap-3">
         <div>
-          <h1 className="text-sm font-bold text-foreground leading-tight">New Sales Order</h1>
+          <h1 className="text-sm font-bold text-foreground leading-tight">New Sale</h1>
           <p className="text-[10px] text-muted-foreground">
             {store?.name ?? "Select store"} · <span className="font-mono font-semibold text-foreground">{saleRef}</span>
           </p>

@@ -381,17 +381,17 @@ export default function BillsPage() {
         toolbar={
           <>
             <span className="text-xs text-muted-foreground">Status:</span>
-            {STATUS_FILTERS.map((s) => (
-              <Button
-                key={s}
-                type="button"
-                size="sm"
-                variant={statusFilter === s ? 'default' : 'outline'}
-                onClick={() => setStatusFilter(s)}
-              >
-                {s === 'ALL' ? 'All' : s}
-              </Button>
-            ))}
+            <select
+              className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as BillStatus | 'ALL')}
+            >
+              {STATUS_FILTERS.map((s) => (
+                <option key={s} value={s}>
+                  {s === 'ALL' ? 'All statuses' : s}
+                </option>
+              ))}
+            </select>
             <div className="h-5 w-px bg-border" />
             <span className="text-xs text-muted-foreground">Location:</span>
             <select

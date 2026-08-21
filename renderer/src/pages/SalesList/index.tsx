@@ -193,18 +193,30 @@ export default function SalesListPage() {
         toolbar={
           <>
             <span className="text-xs text-muted-foreground">Status:</span>
-            {STATUS_FILTERS.map((s) => (
-              <Button key={s} size="sm" variant={statusFilter === s ? 'default' : 'outline'} onClick={() => setStatusFilter(s)}>
-                {s === 'ALL' ? 'All' : s}
-              </Button>
-            ))}
+            <select
+              className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as BillStatus | 'ALL')}
+            >
+              {STATUS_FILTERS.map((s) => (
+                <option key={s} value={s}>
+                  {s === 'ALL' ? 'All statuses' : s}
+                </option>
+              ))}
+            </select>
             <div className="h-5 w-px bg-border" />
             <span className="text-xs text-muted-foreground">Type:</span>
-            {SALE_TYPE_FILTERS.map((t) => (
-              <Button key={t} size="sm" variant={saleTypeFilter === t ? 'default' : 'outline'} onClick={() => setSaleTypeFilter(t)}>
-                {t === 'ALL' ? 'All' : t.charAt(0).toUpperCase() + t.slice(1)}
-              </Button>
-            ))}
+            <select
+              className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+              value={saleTypeFilter}
+              onChange={(e) => setSaleTypeFilter(e.target.value as SaleType | 'ALL')}
+            >
+              {SALE_TYPE_FILTERS.map((t) => (
+                <option key={t} value={t}>
+                  {t === 'ALL' ? 'All types' : t.charAt(0).toUpperCase() + t.slice(1)}
+                </option>
+              ))}
+            </select>
             <div className="h-5 w-px bg-border" />
             <span className="text-xs text-muted-foreground">Store:</span>
             <select

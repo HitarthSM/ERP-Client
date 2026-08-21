@@ -266,7 +266,7 @@ export default function InvoicesPage() {
               namespace={RECENT_NS.orders}
               value={form.orderId}
               onSelect={(id) => setForm({ ...form, orderId: id })}
-              emptyHint="No recent orders in this browser. Create or open a Sales Order first — there is no order directory API."
+              emptyHint="No recent order IDs in this browser."
             />
             <p className="mt-2 text-xs text-muted-foreground">or enter an ID</p>
             <Input

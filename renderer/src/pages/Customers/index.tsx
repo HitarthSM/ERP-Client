@@ -107,6 +107,19 @@ export default function CustomersPage() {
       render: (row) => (row.creditLimit != null ? row.creditLimit.toFixed(2) : '—'),
     },
     {
+      key: 'creditBalance',
+      label: 'Owed',
+      render: (row) => {
+        const owed = Number(row.creditBalance ?? 0);
+        if (!row.creditLimit && owed <= 0) return '—';
+        return (
+          <span className={owed > 0 ? 'font-medium text-amber-600 dark:text-amber-400 tabular-nums' : 'tabular-nums'}>
+            {owed.toFixed(2)}
+          </span>
+        );
+      },
+    },
+    {
       key: 'customerType',
       label: 'Type',
       render: (row) => row.customerType || '—',

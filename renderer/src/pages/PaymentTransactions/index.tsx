@@ -141,20 +141,20 @@ export default function PaymentTransactionsPage() {
         toolbar={
           <>
             <span className="text-xs text-muted-foreground">Status:</span>
-            {STATUS_FILTERS.map((s) => (
-              <Button
-                key={s}
-                type="button"
-                size="sm"
-                variant={statusFilter === s ? 'default' : 'outline'}
-                onClick={() => {
-                  setStatusFilter(s);
-                  setPage(1);
-                }}
-              >
-                {s === 'ALL' ? 'All' : s}
-              </Button>
-            ))}
+            <select
+              className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value as (typeof STATUS_FILTERS)[number]);
+                setPage(1);
+              }}
+            >
+              {STATUS_FILTERS.map((s) => (
+                <option key={s} value={s}>
+                  {s === 'ALL' ? 'All statuses' : s}
+                </option>
+              ))}
+            </select>
           </>
         }
         onRefetch={() => void refetch()}

@@ -266,20 +266,20 @@ export default function ItemReturnsPage() {
         toolbar={
           <>
             <span className="text-xs text-muted-foreground">Status:</span>
-            {(['ALL', 'PENDING', 'COMPLETED', 'CANCELLED'] as const).map((s) => (
-              <Button
-                key={s}
-                type="button"
-                size="sm"
-                variant={statusFilter === s ? 'default' : 'outline'}
-                onClick={() => {
-                  setStatusFilter(s);
-                  setPage(1);
-                }}
-              >
-                {s === 'ALL' ? 'All' : s}
-              </Button>
-            ))}
+            <select
+              className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value as typeof statusFilter);
+                setPage(1);
+              }}
+            >
+              {(['ALL', 'PENDING', 'COMPLETED', 'CANCELLED'] as const).map((s) => (
+                <option key={s} value={s}>
+                  {s === 'ALL' ? 'All statuses' : s}
+                </option>
+              ))}
+            </select>
             <span className="ml-2 text-xs text-muted-foreground">Location:</span>
             <select
               className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
@@ -371,7 +371,7 @@ export default function ItemReturnsPage() {
                 namespace={RECENT_NS.orders}
                 value={form.orderId}
                 onSelect={(id) => setForm({ ...form, orderId: id })}
-                emptyHint="No recent sales orders. Open Sales Orders first — no order directory API."
+                emptyHint="No recent order IDs in this browser."
               />
               <p className="mt-2 text-xs text-muted-foreground">or enter an ID</p>
               <Input

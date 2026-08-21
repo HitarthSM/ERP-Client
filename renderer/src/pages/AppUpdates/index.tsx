@@ -96,20 +96,19 @@ export default function AppUpdatesPage() {
         </p>
       </FormSection>
 
-      <FormSection title="GitHub access">
-        <label className="block text-sm mb-1">GitHub token (optional)</label>
+      <FormSection title="Update access">
+        <label className="block text-sm mb-1">Update access code (optional)</label>
         <Input
           type="password"
           autoComplete="off"
           value={githubToken}
           onChange={(e) => setGithubToken(e.target.value)}
-          placeholder="ghp_… or github_pat_… (optional)"
+          placeholder="Optional — only if update checks fail"
           className="font-mono text-sm"
         />
         <p className="text-xs text-muted-foreground mt-1">
-          Releases come from public repo{' '}
-          <span className="font-mono">HitarthSM/ERP-Client</span>. A token is optional (helps with
-          API rate limits). Save after changing.
+          App updates come from the official release feed. Enter this code only if checks are blocked
+          or fail — ask your administrator if you are unsure. Save after changing.
         </p>
 
         <label className="block text-sm mb-1 mt-4">Auto-check interval (minutes)</label>

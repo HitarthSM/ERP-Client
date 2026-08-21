@@ -105,6 +105,11 @@ export const Bills = {
       onSuccess: (_bill, vars) => {
         toast.success(`Bill marked ${vars.status}`);
         queryClient.invalidateQueries({ queryKey: ['bills'] });
+        if (vars.status === 'COMPLETED') {
+          queryClient.invalidateQueries({ queryKey: ['inventory'] });
+          queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
+          queryClient.invalidateQueries({ queryKey: ['customers'] });
+        }
       },
       onError: (error: Error) => toast.error(error.message || 'Failed to update bill status'),
     });
@@ -306,6 +311,8 @@ export const CreditApprovals = {
         queryClient.invalidateQueries({ queryKey: ['credit-approvals'] });
         queryClient.invalidateQueries({ queryKey: ['bills'] });
         queryClient.invalidateQueries({ queryKey: ['customers'] });
+        queryClient.invalidateQueries({ queryKey: ['inventory'] });
+        queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
       },
       onError: (error: Error) => toast.error(error.message || 'Failed to approve'),
     });
@@ -317,6 +324,7 @@ export const CreditApprovals = {
       onSuccess: () => {
         toast.success('Credit sale rejected');
         queryClient.invalidateQueries({ queryKey: ['credit-approvals'] });
+        queryClient.invalidateQueries({ queryKey: ['bills'] });
       },
       onError: (error: Error) => toast.error(error.message || 'Failed to reject'),
     });
