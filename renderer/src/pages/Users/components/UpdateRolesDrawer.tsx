@@ -81,7 +81,7 @@ export function UpdateRolesDrawer({ user, onClose }: Props) {
                       : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'
                   }`}
                 >
-                  {r}
+                  {r.replace(/_/g, ' ')}
                 </button>
               );
             })}
@@ -112,7 +112,7 @@ export function UpdateRolesDrawer({ user, onClose }: Props) {
                   key={r}
                   className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize"
                 >
-                  {r}
+                  {r.replace(/_/g, ' ')}
                   <button
                     type="button"
                     onClick={() => setSelected((p) => p.filter((x) => x !== r))}

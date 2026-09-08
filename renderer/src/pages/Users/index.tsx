@@ -5,7 +5,7 @@ import { DataTable, type Column } from '../../components/DataTable';
 import { FilterDropdown } from '../../components/FilterDropdown';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { UserStatusBadge } from '../../components/UserStatusBadge';
-import { UserRolePills } from './components/UserRolePills';
+import { UserRolePills } from '../../components/UserRolePills';
 import { InviteUserDrawer } from './components/InviteUserDrawer';
 import { UpdateRolesDrawer } from './components/UpdateRolesDrawer';
 import { AssignOrgDrawer } from '../Organizations/components/AssignOrgDrawer';
@@ -45,7 +45,10 @@ function buildColumns(): Column<ClerkUser>[] {
           alt={row.firstName ?? row.email}
           className="h-8 w-8 rounded-full object-cover ring-1 ring-border"
           onError={(e) => {
-            (e.target as HTMLImageElement).src =
+            const target = e.target as HTMLImageElement;
+            if (target.dataset.errorFallback) return;
+            target.dataset.errorFallback = 'true';
+            target.src =
               `https://ui-avatars.com/api/?name=${encodeURIComponent(
                 [row.firstName, row.lastName].filter(Boolean).join('+') || row.email,
               )}&background=random&size=64`;

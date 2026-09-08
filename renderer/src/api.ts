@@ -554,7 +554,20 @@ export function useListUserDirectory(organizationId?: string) {
     staleTime: 5 * 60 * 1000,
   });
 }
-export const Locations = createResource<Location>('/api/v1/locations', 'locations', 'Location');
+const locationsBase = createResource<Location>('/api/v1/locations', 'locations', 'Location');
+
+export const Locations = {
+  ...locationsBase,
+  useSearch(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    filters?: Record<string, string>;
+    enabled?: boolean;
+  }) {
+    return locationsBase.useSearch({ ...params, omitPagination: true });
+  },
+};
 // ── Inventory cluster (hook-based) ─────────────────────────────────────────────
 
 export function useCategoryParents(enabled = true) {

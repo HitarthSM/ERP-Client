@@ -23,11 +23,12 @@ import { usePagination } from '../../hooks/usePagination';
 import { useSession } from '../../context/SessionContext';
 import type { Location, LocationType } from '../../types';
 
-const TYPE_OPTIONS: LocationType[] = ['store', 'warehouse'];
+const TYPE_OPTIONS: LocationType[] = ['store', 'warehouse', 'branch'];
 
 interface FormState {
   name: string;
   type: LocationType | '';
+  parentId: string;
   address: string;
   countryName: string;
   countryId: number | null;
@@ -41,7 +42,7 @@ interface FormState {
 interface PendingImage { file: File; previewUrl: string }
 
 const EMPTY_FORM: FormState = {
-  name: '', type: '',
+  name: '', type: '', parentId: '',
   address: '',
   countryName: '', countryId: null,
   stateName: '', stateId: null,
@@ -54,22 +55,25 @@ export default function LocationsPage() {
   const { pathname } = useLocation();
   const { isSuperAdmin } = useSession();
   const warehouseOnly = pathname.startsWith('/warehouse');
-  const storeOnly     = pathname.startsWith('/stores');
+  const storeOnly = pathname.startsWith('/stores');
+  const branchOnly = pathname.startsWith('/branches');
   const emptyForm: FormState = warehouseOnly
     ? { ...EMPTY_FORM, type: 'warehouse' }
     : storeOnly
       ? { ...EMPTY_FORM, type: 'store' }
-      : EMPTY_FORM;
+      : branchOnly
+        ? { ...EMPTY_FORM, type: 'branch' }
+        : EMPTY_FORM;
 
-  const [drawerOpen, setDrawerOpen]       = useState(false);
-  const [editing, setEditing]             = useState<Location | null>(null);
-  const [form, setForm]                   = useState<FormState>(emptyForm);
-  const [deleteTarget, setDeleteTarget]   = useState<Location | null>(null);
-  const [viewRow, setViewRow]             = useState<Location | null>(null);
-  const [pendingImage, setPendingImage]   = useState<PendingImage | null>(null);
-  const [serverImage, setServerImage]     = useState(false);
-  const [uploading, setUploading]         = useState(false);
-  const [statusFilter, setStatusFilter]   = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editing, setEditing] = useState<Location | null>(null);
+  const [form, setForm] = useState<FormState>(emptyForm);
+  const [deleteTarget, setDeleteTarget] = useState<Location | null>(null);
+  const [viewRow, setViewRow] = useState<Location | null>(null);
+  const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
+  const [serverImage, setServerImage] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const pendingRef = useRef<PendingImage | null>(null);
   pendingRef.current = pendingImage;
 
@@ -77,9 +81,9 @@ export default function LocationsPage() {
     return () => { if (pendingRef.current) URL.revokeObjectURL(pendingRef.current.previewUrl); };
   }, []);
 
-  const createMutation      = Locations.useCreate();
-  const updateMutation      = Locations.useUpdate();
-  const removeMutation      = Locations.useDelete();
+  const createMutation = Locations.useCreate();
+  const updateMutation = Locations.useUpdate();
+  const removeMutation = Locations.useDelete();
   const uploadImageMutation = useUploadLocationImage();
   const removeImageMutation = useRemoveLocationImage();
   const { data: orgs = [] } = Organizations.useList(isSuperAdmin);
@@ -90,15 +94,19 @@ export default function LocationsPage() {
     const next: Record<string, string> = {};
     if (warehouseOnly) next.type = 'warehouse';
     else if (storeOnly) next.type = 'store';
-    if (statusFilter)  next.isActive = statusFilter;
+    else if (branchOnly) next.type = 'branch';
+    if (statusFilter) next.isActive = statusFilter;
     return Object.keys(next).length ? next : undefined;
-  }, [warehouseOnly, storeOnly, statusFilter]);
+  }, [warehouseOnly, storeOnly, branchOnly, statusFilter]);
 
   const { data, isLoading, error, refetch } = Locations.useSearch({ page, search: debouncedSearch, filters });
 
   const { data: countries = [] } = useListCountries();
-  const { data: states = [] }    = useListStates(form.countryId);
-  const { data: cities = [] }    = useListCities(form.stateId);
+  const { data: states = [] } = useListStates(form.countryId);
+  const { data: cities = [] } = useListCities(form.stateId);
+
+  const { data: branchesData } = Locations.useSearch({ filters: { type: 'branch' } });
+  const branches = branchesData?.items ?? [];
 
   const clearPending = () => {
     setPendingImage((prev) => { if (prev) URL.revokeObjectURL(prev.previewUrl); return null; });
@@ -116,15 +124,16 @@ export default function LocationsPage() {
     setEditing(row);
     const country = countries.find((c) => c.name === row.country) ?? null;
     setForm({
-      name:        row.name        ?? '',
-      type:        row.type        ?? '',
-      address:     row.address     ?? '',
-      countryName: row.country     ?? '',
-      countryId:   country?.id     ?? null,
-      stateName:   row.state       ?? '',
-      stateId:     null,
-      cityName:    row.city        ?? '',
-      phone:       row.phone       ?? '',
+      name: row.name ?? '',
+      type: row.type ?? '',
+      parentId: row.parentId ?? '',
+      address: row.address ?? '',
+      countryName: row.country ?? '',
+      countryId: country?.id ?? null,
+      stateName: row.state ?? '',
+      stateId: null,
+      cityName: row.city ?? '',
+      phone: row.phone ?? '',
       organizationId: row.organizationId ?? '',
     });
     setServerImage(!!row.imageKey);
@@ -165,13 +174,14 @@ export default function LocationsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const body: Partial<Location> = {
-      name:    form.name,
-      type:    form.type   || undefined,
+      name: form.name,
+      type: form.type || undefined,
+      parentId: form.parentId || undefined,
       address: form.address || undefined,
-      city:    form.cityName   || undefined,
-      state:   form.stateName  || undefined,
+      city: form.cityName || undefined,
+      state: form.stateName || undefined,
       country: form.countryName || undefined,
-      phone:   form.phone  || undefined,
+      phone: form.phone || undefined,
       organizationId: isSuperAdmin && !editing ? form.organizationId || undefined : undefined,
     };
     if (editing) {
@@ -193,10 +203,17 @@ export default function LocationsPage() {
   };
 
   const columns: Column<Location>[] = [
-    { key: 'name',    label: 'Name' },
-    { key: 'type',    label: 'Type' },
-    { key: 'city',    label: 'City',    render: (r) => r.city    || '—' },
-    { key: 'state',   label: 'State',   render: (r) => r.state   || '—' },
+    { key: 'name', label: 'Name' },
+    { key: 'type', label: 'Type' },
+    {
+      key: 'parentId', label: 'Branch', render: (r) => {
+        if (!r.parentId) return '—';
+        const branch = branches.find(b => b.id === r.parentId);
+        return branch ? branch.name : 'Unknown Branch';
+      }
+    },
+    { key: 'city', label: 'City', render: (r) => r.city || '—' },
+    { key: 'state', label: 'State', render: (r) => r.state || '—' },
     { key: 'country', label: 'Country', render: (r) => r.country || '—' },
     {
       key: 'isActive',
@@ -211,13 +228,15 @@ export default function LocationsPage() {
   ];
 
   const isSaving = createMutation.isPending || updateMutation.isPending || uploading;
-  const pageTitle   = warehouseOnly ? 'Warehouses' : storeOnly ? 'Stores'     : 'Locations';
-  const entityLabel = warehouseOnly ? 'Warehouse'  : storeOnly ? 'Store'      : 'Location';
-  const pageDesc    = warehouseOnly
+  const pageTitle = warehouseOnly ? 'Warehouses' : storeOnly ? 'Stores' : branchOnly ? 'Branches' : 'Locations';
+  const entityLabel = warehouseOnly ? 'Warehouse' : storeOnly ? 'Store' : branchOnly ? 'Branch' : 'Location';
+  const pageDesc = warehouseOnly
     ? 'Manage warehouse locations for your organization.'
     : storeOnly
       ? 'Manage store locations for your organization.'
-      : 'Manage store and warehouse locations for your organization.';
+      : branchOnly
+        ? 'Manage branch locations for your organization.'
+        : 'Manage store, warehouse, and branch locations for your organization.';
 
   return (
     <div className="space-y-4" style={{ height: '100%' }}>
@@ -237,17 +256,17 @@ export default function LocationsPage() {
           <FilterDropdown
             label="Status"
             options={[
-              { value: 'true',  label: 'Active' },
+              { value: 'true', label: 'Active' },
               { value: 'false', label: 'Inactive' },
             ]}
             value={statusFilter}
             onChange={(v) => { setStatusFilter(v); setPage(1); }}
           />
         }
-        searchPlaceholder={warehouseOnly ? 'Search warehouses…' : storeOnly ? 'Search stores…' : 'Search locations…'}
+        searchPlaceholder={warehouseOnly ? 'Search warehouses…' : storeOnly ? 'Search stores…' : branchOnly ? 'Search branches…' : 'Search locations…'}
         isAdmin={true}
         onAdd={openCreate}
-        addLabel={warehouseOnly ? 'Configure Warehouse' : 'Configure Location'}
+        addLabel={warehouseOnly ? 'Configure Warehouse' : storeOnly ? 'Configure Store' : branchOnly ? 'Configure Branch' : 'Configure Location'}
         onView={(row) => setViewRow(row)}
         onEdit={openEdit}
         onDelete={(row) => setDeleteTarget(row)}
@@ -296,10 +315,22 @@ export default function LocationsPage() {
 
           {!warehouseOnly && !storeOnly && (
             <Field label="Type" required>
-              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as LocationType })}>
+              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as LocationType, parentId: v === 'branch' ? '' : form.parentId })}>
                 <SelectTrigger><SelectValue placeholder="Select type…" /></SelectTrigger>
                 <SelectContent>
                   {TYPE_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
+
+          {form.type !== 'branch' && (
+            <Field label="Branch">
+              <Select value={form.parentId || 'none'} onValueChange={(v) => setForm({ ...form, parentId: v === 'none' ? '' : v })}>
+                <SelectTrigger><SelectValue placeholder="Select parent branch…" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </Field>

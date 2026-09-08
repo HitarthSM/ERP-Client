@@ -62,11 +62,12 @@ export interface City {
 
 // ── Addresses ─────────────────────────────────────────────────────────────────
 
-export type LocationType = 'store' | 'warehouse';
+export type LocationType = 'store' | 'warehouse' | 'branch';
 
 export interface Location {
   id: string;
   organizationId?: string;
+  parentId?: string;
   name: string;
   type: LocationType;
   imageKey?: string;

@@ -110,49 +110,6 @@ export function PaymentLogisticsSection({
           </div>
         )}
 
-        {/* Driver */}
-        {drivers.length > 0 && (
-          <div className="w-44">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Driver</label>
-            <FormSelect
-              value={selectedDriverId}
-              onChange={onDriverSelect}
-              placeholder="— Select Driver —"
-              className="h-9 py-1.5"
-              options={[
-                { value: '', label: '— Select Driver —' },
-                ...drivers.map((d) => ({
-                  value: d.id,
-                  label: `${d.firstName} ${d.lastName}`.trim(),
-                })),
-              ]}
-            />
-          </div>
-        )}
-
-        {/* Vehicle */}
-        <div className="w-32">
-          <label className="mb-1 block text-xs font-medium text-muted-foreground">Vehicle</label>
-          <input
-            type="text"
-            value={delivery.vehicleNumber ?? ""}
-            onChange={(e) => onDeliveryChange({ ...delivery, vehicleNumber: e.target.value })}
-            placeholder="Vehicle no."
-            className={inputCls + " w-full"}
-          />
-        </div>
-
-        {/* Delivery location */}
-        <div className="w-36">
-          <label className="mb-1 block text-xs font-medium text-muted-foreground">Delivery Location</label>
-          <input
-            type="text"
-            value={delivery.location ?? ""}
-            onChange={(e) => onDeliveryChange({ ...delivery, location: e.target.value })}
-            placeholder="Delivery location"
-            className={inputCls + " w-full"}
-          />
-        </div>
 
         {/* Notes */}
         <div className="flex-1 min-w-[160px]">
