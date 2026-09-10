@@ -58,9 +58,9 @@ export default function RolesPage(): React.JSX.Element {
             key: 'name',
             label: 'Name',
             render: (r) => (
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${ROLE_BADGE[r.name ?? ''] ?? 'bg-muted text-muted-foreground'}`}>
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${ROLE_BADGE[r.name ?? ''] ?? 'bg-muted text-muted-foreground'}`}>
                 <ShieldCheck size={11} />
-                {r.name ?? '—'}
+                {r.name ? r.name.replace(/_/g, ' ') : '—'}
               </span>
             ),
           },
@@ -68,11 +68,6 @@ export default function RolesPage(): React.JSX.Element {
             key: 'id',
             label: 'ID',
             render: (r) => <span className="font-mono text-xs text-muted-foreground">{r.id}</span>,
-          },
-          {
-            key: 'createdAt',
-            label: 'Created',
-            render: (r) => (r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—'),
           },
         ]}
         rows={rows}
@@ -109,7 +104,7 @@ export default function RolesPage(): React.JSX.Element {
               </SelectTrigger>
               <SelectContent>
                 {ROLE_NAMES.map((n) => (
-                  <SelectItem key={n} value={n}>{n}</SelectItem>
+                  <SelectItem key={n} value={n} className="capitalize">{n.replace(/_/g, ' ')}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

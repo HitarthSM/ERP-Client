@@ -664,8 +664,20 @@ export function useListUserDirectory(organizationId?: string, enabled = true) {
     refetchOnWindowFocus: false,
   });
 }
-export const Locations = createResource<Location>('/api/v1/locations', 'locations', 'Location');
-export const Branches = createResource<Branch>('/api/v1/branches', 'branches', 'Branch');
+const locationsBase = createResource<Location>('/api/v1/locations', 'locations', 'Location');
+
+export const Locations = {
+  ...locationsBase,
+  useSearch(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    filters?: Record<string, string>;
+    enabled?: boolean;
+  }) {
+    return locationsBase.useSearch({ ...params, omitPagination: true });
+  },
+};
 // ── Inventory cluster (hook-based) ─────────────────────────────────────────────
 
 export function useCategoryParents(enabled = true) {

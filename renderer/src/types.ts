@@ -62,28 +62,12 @@ export interface City {
 
 // ── Addresses ─────────────────────────────────────────────────────────────────
 
-export interface Branch {
-  id: string;
-  organizationId: string;
-  name: string;
-  code?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  phone?: string;
-  isActive: boolean;
-  locationIds?: string[];
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export type LocationType = 'store' | 'warehouse';
+export type LocationType = 'store' | 'warehouse' | 'branch';
 
 export interface Location {
   id: string;
   organizationId?: string;
-  branchId?: string;
+  parentId?: string;
   name: string;
   type: LocationType;
   imageKey?: string;

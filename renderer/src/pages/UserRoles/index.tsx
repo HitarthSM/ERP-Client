@@ -117,8 +117,8 @@ export default function UserRolesPage(): React.JSX.Element {
             render: (r) => {
               const name = r.roleId ? (roleById.get(r.roleId) ?? r.roleId) : '—';
               return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-                  {name}
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary capitalize">
+                  {typeof name === 'string' ? name.replace(/_/g, ' ') : name}
                 </span>
               );
             },
@@ -131,11 +131,6 @@ export default function UserRolesPage(): React.JSX.Element {
               if (r.locationId) return locationById.get(r.locationId) ?? r.locationId;
               return 'Org-wide';
             },
-          },
-          {
-            key: 'createdAt',
-            label: 'Assigned',
-            render: (r) => (r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—'),
           },
         ]}
         rows={assignments}
@@ -198,7 +193,7 @@ export default function UserRolesPage(): React.JSX.Element {
               </SelectTrigger>
               <SelectContent>
                 {roles.filter((r) => r.name !== 'super_admin').map((r) => (
-                  <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                  <SelectItem key={r.id} value={r.id} className="capitalize">{r.name ? r.name.replace(/_/g, ' ') : r.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
