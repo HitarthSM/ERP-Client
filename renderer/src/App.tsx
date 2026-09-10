@@ -25,6 +25,7 @@ const InventoryPage = lazy(() => import('./pages/Inventory'));
 const InventoryDetailPage = lazy(() => import('./pages/InventoryDetail'));
 const Organizations = lazy(() => import('./pages/Organizations'));
 const Locations = lazy(() => import('./pages/Locations'));
+const Branches = lazy(() => import('./pages/Branches'));
 const Categories = lazy(() => import('./pages/Categories'));
 const Suppliers = lazy(() => import('./pages/Suppliers'));
 const PurchaseOrders = lazy(() => import('./pages/PurchaseOrders'));
@@ -45,6 +46,8 @@ const Customers = lazy(() => import('./pages/Customers'));
 const CustomerDetail = lazy(() => import('./pages/CustomerDetail'));
 const Creditors = lazy(() => import('./pages/Creditors'));
 const Orders = lazy(() => import('./pages/Orders'));
+const OrdersList = lazy(() => import('./pages/OrdersList'));
+const WarehousePacking = lazy(() => import('./pages/WarehousePacking'));
 const Invoices = lazy(() => import('./pages/Invoices'));
 const ActivityLogs = lazy(() => import('./pages/ActivityLogs'));
 const AuditLog = lazy(() => import('./pages/AuditLog'));
@@ -127,7 +130,9 @@ function App() {
             <Route path="stores" element={<Locations />} />
             <Route path="warehouse" element={<Locations />} />
             <Route path="branches" element={<Locations />} />
+            <Route path="warehouse/packing" element={<WarehousePacking />} />
             <Route path="locations" element={<Locations />} />
+            <Route path="branches" element={<Branches />} />
             <Route path="categories" element={<Categories />} />
             <Route path="suppliers" element={<Suppliers />} />
             <Route path="purchase-orders" element={<PurchaseOrders />} />
@@ -156,7 +161,9 @@ function App() {
             <Route path="sales/creditors" element={<Creditors />} />
             <Route path="pending-approvals" element={<PendingApprovals />} />
             <Route path="black-ledger" element={<BlackLedger />} />
-            <Route path="orders" element={<Orders />} />
+            <Route path="orders" element={<Navigate to="/orders/list" replace />} />
+            <Route path="orders/list" element={<OrdersList />} />
+            <Route path="orders/new" element={<Orders />} />
             <Route path="invoices" element={<Invoices />} />
             <Route path="approvals/pending" element={<PendingApprovals />} />
             <Route path="approvals/black-ledger" element={<BlackLedger />} />
