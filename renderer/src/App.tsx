@@ -6,6 +6,8 @@ import AuthBootScreen from './components/auth/AuthBootScreen';
 import { useAuth } from './context/AuthContext';
 import { PageAccessProvider } from './context/PageAccessContext';
 import PageAccessRoute from './components/PageAccessRoute';
+import { BlackTabProvider } from './context/BlackTabContext';
+import BlackTabProtectedRoute from './components/BlackTabProtectedRoute';
 import { clerk } from './lib/clerk';
 
 const AppLayout = lazy(() => import('./components/layout/AppLayout'));
@@ -64,6 +66,7 @@ const UserDetail = lazy(() => import('./pages/UserDetail'));
 const PageAccessPage = lazy(() => import('./pages/PageAccess'));
 const PendingApprovals = lazy(() => import('./pages/credit-approvals/PendingApprovals'));
 const BlackLedger = lazy(() => import('./pages/credit-approvals/BlackLedger'));
+const BlackStockReports = lazy(() => import('./pages/BlackStockReports'));
 const VehiclesPage = lazy(() => import('./pages/VehiclesPage'));
 const VehicleDetailPage = lazy(() => import('./pages/VehicleDetailPage'));
 const FleetDashboard = lazy(() => import('./pages/Fleet'));
@@ -121,7 +124,7 @@ function App() {
           <Route path="/sso-continue" element={<SSOContinue />} />
           <Route path="/onboarding/create-org" element={<SessionRoute><CreateOrganization /></SessionRoute>} />
 
-          <Route path="/" element={<ProtectedRoute><PageAccessProvider><AppLayout /></PageAccessProvider></ProtectedRoute>}>
+          <Route path="/" element={<ProtectedRoute><BlackTabProvider><PageAccessProvider><AppLayout /></PageAccessProvider></BlackTabProvider></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="products" element={<Products />} />
             <Route path="inventory" element={<InventoryPage />} />
@@ -154,19 +157,20 @@ function App() {
             <Route path="stock-movements" element={<StockMovementsPage />} />
             <Route path="stock-transfers" element={<StockTransfersPage />} />
             <Route path="stock-requests" element={<StockRequestsPage />} />
-            <Route path="unpublished-stock" element={<UnpublishedStockPage />} />
+            <Route path="unpublished-stock" element={<BlackTabProtectedRoute><UnpublishedStockPage /></BlackTabProtectedRoute>} />
             <Route path="product-logs" element={<ProductLogsPage />} />
             <Route path="customers" element={<Customers />} />
             <Route path="customers/:id" element={<CustomerDetail />} />
             <Route path="sales/creditors" element={<Creditors />} />
             <Route path="pending-approvals" element={<PendingApprovals />} />
-            <Route path="black-ledger" element={<BlackLedger />} />
+            <Route path="black-ledger" element={<BlackTabProtectedRoute><BlackLedger /></BlackTabProtectedRoute>} />
             <Route path="orders" element={<Navigate to="/orders/list" replace />} />
             <Route path="orders/list" element={<OrdersList />} />
             <Route path="orders/new" element={<Orders />} />
             <Route path="invoices" element={<Invoices />} />
             <Route path="approvals/pending" element={<PendingApprovals />} />
-            <Route path="approvals/black-ledger" element={<BlackLedger />} />
+            <Route path="approvals/black-ledger" element={<BlackTabProtectedRoute><BlackLedger /></BlackTabProtectedRoute>} />
+            <Route path="black-stock/reports" element={<BlackTabProtectedRoute><BlackStockReports /></BlackTabProtectedRoute>} />
             <Route path="vehicles" element={<VehiclesPage />} />
             <Route path="vehicles/:id" element={<VehicleDetailPage />} />
             <Route path="fleet" element={<FleetDashboard />} />

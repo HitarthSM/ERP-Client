@@ -94,7 +94,6 @@ export const MODULES: ModuleGroup[] = [
       { key: 'pos-sales', title: 'New Sale', path: '/pos/sales', icon: ScanLine },
       { key: 'sales-list', title: 'Sales List', path: '/sales/list', icon: FileText },
       { key: 'pending-approvals', title: 'Pending Approvals', path: '/pending-approvals', icon: CheckSquare },
-      { key: 'black-ledger', title: 'Black Ledger', path: '/black-ledger', icon: Wallet },
       { key: 'customers', title: 'Customers', path: '/customers', icon: Users2 },
       { key: 'creditors', title: 'Creditors', path: '/sales/creditors', icon: CreditCard },
       // { key: 'quotations', title: 'Quotations', path: '/sales/quotations', icon: FileText, disabled: true },
@@ -132,7 +131,15 @@ export const MODULES: ModuleGroup[] = [
       // { key: 'in-transit', title: 'In Transit', path: '/inventory/in-transit', icon: Loader2, disabled: true },
       // { key: 'batches', title: 'Batches / Lots', path: '/inventory/batches', icon: Tag, disabled: true },
       // { key: 'expiry', title: 'Expiry', path: '/inventory/expiry', icon: CalendarX, disabled: true },
-      { key: 'unpublished-stock', title: 'Unpublished Stock', path: '/unpublished-stock', icon: EyeOff },
+    ],
+  },
+  {
+    label: 'Black Stock',
+    icon: EyeOff,
+    items: [
+      { key: 'unpublished-stock', title: 'Inventory', path: '/unpublished-stock', icon: Boxes },
+      { key: 'black-ledger', title: 'Ledger', path: '/black-ledger', icon: Wallet },
+      { key: 'black-stock-reports', title: 'Reports', path: '/black-stock/reports', icon: FileText },
     ],
   },
   {
