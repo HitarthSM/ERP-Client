@@ -1,14 +1,17 @@
 import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useBlackTab } from '../context/BlackTabContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
 
 export function BlackTabUnlockModal({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { unlock } = useBlackTab();
   const [pin, setPin] = useState('');
+  const [showPin, setShowPin] = useState(false);
 
   const handleUnlock = () => {
     if (unlock(pin)) {
       setPin('');
+      setShowPin(false);
       onOpenChange(false);
     }
   };
@@ -23,7 +26,10 @@ export function BlackTabUnlockModal({ open, onOpenChange }: { open: boolean; onO
     <Dialog
       open={open}
       onOpenChange={(isOpen) => {
-        if (!isOpen) setPin('');
+        if (!isOpen) {
+          setPin('');
+          setShowPin(false);
+        }
         onOpenChange(isOpen);
       }}
     >
@@ -33,15 +39,26 @@ export function BlackTabUnlockModal({ open, onOpenChange }: { open: boolean; onO
         </DialogHeader>
         <div className="py-4">
           <label className="block text-sm font-medium mb-2">PIN / Password</label>
-          <input
-            type="password"
-            className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="Enter PIN"
-            value={pin}
-            onChange={(e) => setPin(e.target.value)}
-            onKeyDown={handleKeyDown}
-            autoFocus
-          />
+          <div className="relative">
+            <input
+              type={showPin ? 'text' : 'password'}
+              className="w-full px-3 py-2 pr-10 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Enter PIN"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
+              onKeyDown={handleKeyDown}
+              autoFocus
+            />
+            <button
+              type="button"
+              onClick={() => setShowPin((prev) => !prev)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none p-1 rounded transition-colors"
+              aria-label={showPin ? 'Hide password' : 'Show password'}
+              title={showPin ? 'Hide password' : 'Show password'}
+            >
+              {showPin ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
         </div>
         <DialogFooter>
           <button

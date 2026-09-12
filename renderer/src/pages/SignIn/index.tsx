@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { clerk } from '../../lib/clerk';
 import { clerkErrorMessage, resolveSignInStatus, startGoogleOAuth } from '../../lib/auth-flow';
@@ -17,6 +17,9 @@ export default function SignIn() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [capsLockActive, setCapsLockActive] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Backend /me still catching up after setActive — avoid flashing the login form.
@@ -36,7 +39,9 @@ export default function SignIn() {
 
   const requireClerkClient = () => {
     if (!clerk.client) {
-      toast.error('Clerk is still starting up — try again in a moment');
+      const msg = 'Clerk is still starting up — try again in a moment';
+      setErrorMsg(msg);
+      toast.error(msg);
       return false;
     }
     return true;
@@ -45,6 +50,7 @@ export default function SignIn() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!requireClerkClient()) return;
+    setErrorMsg(null);
     setLoading(true);
     try {
       const signIn = await clerk.client!.signIn.create({
@@ -54,7 +60,9 @@ export default function SignIn() {
       });
       await resolveSignInStatus(signIn, { navigate, refresh });
     } catch (error: any) {
-      toast.error(clerkErrorMessage(error, 'Sign in failed'));
+      const msg = clerkErrorMessage(error, 'Sign in failed');
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -62,12 +70,21 @@ export default function SignIn() {
 
   const handleGoogle = async () => {
     if (!requireClerkClient()) return;
+    setErrorMsg(null);
     setLoading(true);
     try {
       await startGoogleOAuth(clerk.client!.signIn);
     } catch (error: any) {
-      toast.error(clerkErrorMessage(error, 'Google sign-in failed'));
+      const msg = clerkErrorMessage(error, 'Google sign-in failed');
+      setErrorMsg(msg);
+      toast.error(msg);
       setLoading(false);
+    }
+  };
+
+  const checkCapsLock = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (typeof e.getModifierState === 'function') {
+      setCapsLockActive(e.getModifierState('CapsLock'));
     }
   };
 
@@ -83,29 +100,79 @@ export default function SignIn() {
           </div>
 
           <form onSubmit={handleSignIn} className="space-y-6">
+            {errorMsg && (
+              <div className="p-3 text-sm rounded-md bg-destructive/10 border border-destructive/20 text-destructive">
+                {errorMsg}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setEmail(e.target.value);
+                  if (errorMsg) setErrorMsg(null);
+                }}
                 required
                 autoFocus
                 autoComplete="email"
+                disabled={loading}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+              </div>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setPassword(e.target.value);
+                    if (errorMsg) setErrorMsg(null);
+                  }}
+                  onKeyDown={checkCapsLock}
+                  onKeyUp={checkCapsLock}
+                  required
+                  autoComplete="current-password"
+                  className="pr-10"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-1 focus:ring-ring rounded p-1 transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  disabled={loading}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {capsLockActive && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                  Caps Lock is ON
+                </p>
+              )}
             </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <label className="flex items-center gap-2 cursor-pointer select-none text-muted-foreground hover:text-foreground">
+                <input
+                  type="checkbox"
+                  checked={showPassword}
+                  onChange={(e) => setShowPassword(e.target.checked)}
+                  className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                  disabled={loading}
+                />
+                <span>Show password</span>
+              </label>
+            </div>
+
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="animate-spin" />}
               {loading ? 'Signing in...' : 'Sign In'}
