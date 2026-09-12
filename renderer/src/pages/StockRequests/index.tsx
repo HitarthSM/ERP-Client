@@ -49,6 +49,7 @@ export default function StockRequestsPage() {
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
 
   const [raiseOpen, setRaiseOpen] = useState(false);
+  const [raiseLocationId, setRaiseLocationId] = useState('');
   const [raiseProductId, setRaiseProductId] = useState('');
   const [raiseQty, setRaiseQty] = useState('');
 
@@ -89,6 +90,7 @@ export default function StockRequestsPage() {
   const handleCloseRaise = () => {
     setRaiseOpen(false);
     setTimeout(() => {
+      setRaiseLocationId('');
       setRaiseProductId('');
       setRaiseQty('');
     }, 300);
@@ -96,11 +98,11 @@ export default function StockRequestsPage() {
 
   const handleRaiseSubmit = (ev: React.FormEvent) => {
     ev.preventDefault();
-    if (!selectedLocationId || !raiseProductId || !raiseQty) return;
+    if (!raiseLocationId || !raiseProductId || !raiseQty) return;
     const qty = Number(raiseQty);
     if (qty <= 0) return;
     raiseMutation.mutate(
-      { requestingLocationId: selectedLocationId, productId: raiseProductId, quantityRequested: qty },
+      { requestingLocationId: raiseLocationId, productId: raiseProductId, quantityRequested: qty },
       { onSuccess: handleCloseRaise },
     );
   };
@@ -172,7 +174,7 @@ export default function StockRequestsPage() {
             <Button
               size="sm"
               disabled={acceptMutation.isPending}
-              onClick={() => acceptMutation.mutate({ id: row.id, acceptingLocationId: selectedLocationId })}
+              onClick={() => selectedLocationId && acceptMutation.mutate({ id: row.id, acceptingLocationId: selectedLocationId })}
             >
               Accept
             </Button>
@@ -247,7 +249,7 @@ export default function StockRequestsPage() {
               onPageChange={() => undefined}
               onRefetch={refetchMine}
               toolbar={
-                <Button size="sm" onClick={() => setRaiseOpen(true)}>
+                <Button size="sm" onClick={() => { setRaiseLocationId(selectedLocationId); setRaiseOpen(true); }}>
                   <Send size={14} className="mr-1.5" /> Raise Request
                 </Button>
               }
@@ -281,7 +283,7 @@ export default function StockRequestsPage() {
             <Button
               type="submit"
               form="raise-form"
-              disabled={raiseMutation.isPending}
+              disabled={raiseMutation.isPending || !raiseLocationId || !raiseProductId}
             >
               {raiseMutation.isPending ? 'Raising...' : 'Raise Request'}
             </Button>
@@ -291,9 +293,16 @@ export default function StockRequestsPage() {
       >
         <form id="raise-form" onSubmit={handleRaiseSubmit} className="space-y-4">
           <Field label="Requesting Store" required>
-            <p className="text-sm font-medium text-foreground px-3 py-2 rounded-md bg-muted">
-              {locationMap.get(selectedLocationId) ?? selectedLocationId}
-            </p>
+            <Select value={raiseLocationId} onValueChange={setRaiseLocationId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select your store…" />
+              </SelectTrigger>
+              <SelectContent>
+                {(locations ?? []).map((loc) => (
+                  <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
 
           <Field label="Product" required>
