@@ -97,10 +97,27 @@ export async function verifyEmailCode(
 }
 
 export async function startGoogleOAuth(signIn: SignInResource): Promise<void> {
-  const origin = window.location.origin;
-  await signIn.authenticateWithRedirect({
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const callbackUrl = `${origin}/#/sso-callback`;
+  const redirectUrl = typeof clerk.buildUrlWithAuth === 'function'
+    ? clerk.buildUrlWithAuth(callbackUrl)
+    : callbackUrl;
+
+  const res = await signIn.create({
     strategy: 'oauth_google',
-    redirectUrl: `${origin}/#/sso-callback`,
-    redirectUrlComplete: `${origin}/#/`,
+    redirectUrl,
+    actionCompleteRedirectUrl: `${origin}/#/`,
   });
+
+  const verificationUrl = res.firstFactorVerification?.externalVerificationRedirectURL;
+  if (!verificationUrl) {
+    throw new Error('Google sign-in did not return an authorization URL');
+  }
+
+  const targetUrl = verificationUrl instanceof URL ? verificationUrl : new URL(String(verificationUrl));
+  targetUrl.searchParams.set('prompt', 'select_account');
+
+  if (typeof window !== 'undefined') {
+    window.location.href = targetUrl.toString();
+  }
 }

@@ -39,6 +39,8 @@ interface DataTableProps<T extends { id: string }> {
   limit?: number;
   /** Optional muted note under the pager (e.g. omitPagination honesty). */
   footerNote?: string;
+  /** Optional custom empty state rendered when there are no records. */
+  emptyState?: React.ReactNode;
 }
 
 function getCellValue<T>(row: T, key: string): unknown {
@@ -70,6 +72,7 @@ export function DataTable<T extends { id: string }>({
   searchPlaceholder = 'Search…',
   limit = 15,
   footerNote,
+  emptyState,
 }: DataTableProps<T>) {
   const [searchInput, setSearchInput] = useState('');
   const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -111,7 +114,7 @@ export function DataTable<T extends { id: string }>({
               <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             </Button>
           )}
-          {onAdd && isAdmin && (
+          {onAdd && (isAdmin ?? true) && (
             <Button size="sm" onClick={onAdd}>
               <Plus size={15} /> {addLabel}
             </Button>
@@ -162,7 +165,7 @@ export function DataTable<T extends { id: string }>({
               {!loading && rows.length === 0 && (
                 <tr>
                   <td colSpan={columns.length + (showActions ? 1 : 0)} className="px-3 py-8 text-center text-muted-foreground">
-                    No records found
+                    {emptyState ?? 'No records found'}
                   </td>
                 </tr>
               )}

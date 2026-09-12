@@ -785,7 +785,10 @@ export interface ActivityLog {
   userId?: string;
   action?: string;
   entityName?: string;
+  entityType?: string;
   entityId?: string;
+  details?: Record<string, any>;
+  metadata?: Record<string, any>;
   createdAt?: string;
 }
 

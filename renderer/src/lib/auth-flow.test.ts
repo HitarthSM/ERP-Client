@@ -4,7 +4,7 @@ vi.mock('./clerk', () => ({
   clerk: { setActive: vi.fn().mockResolvedValue(undefined) },
 }));
 
-import { resolveSignInStatus, clerkErrorMessage } from './auth-flow';
+import { resolveSignInStatus, clerkErrorMessage, startGoogleOAuth } from './auth-flow';
 import { clerk } from './clerk';
 
 function fakeSignIn(overrides: Record<string, unknown> = {}) {
@@ -97,6 +97,36 @@ describe('clerkErrorMessage', () => {
 
   it('returns fallback when no error message or array is provided', () => {
     expect(clerkErrorMessage({}, 'Fallback message')).toBe('Fallback message');
+  });
+});
+
+describe('startGoogleOAuth', () => {
+  it('creates sign in with oauth_google and appends prompt=select_account', async () => {
+    const verificationUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth?client_id=test_client');
+    const create = vi.fn().mockResolvedValue({
+      firstFactorVerification: {
+        externalVerificationRedirectURL: verificationUrl,
+      },
+    });
+    const signIn = { create } as any;
+
+    await startGoogleOAuth(signIn);
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        strategy: 'oauth_google',
+      }),
+    );
+    expect(verificationUrl.searchParams.get('prompt')).toBe('select_account');
+  });
+
+  it('throws when externalVerificationRedirectURL is missing', async () => {
+    const create = vi.fn().mockResolvedValue({
+      firstFactorVerification: {},
+    });
+    const signIn = { create } as any;
+
+    await expect(startGoogleOAuth(signIn)).rejects.toThrow(/did not return an authorization URL/);
   });
 });
 
