@@ -4,7 +4,7 @@ vi.mock('./clerk', () => ({
   clerk: { setActive: vi.fn().mockResolvedValue(undefined) },
 }));
 
-import { resolveSignInStatus } from './auth-flow';
+import { resolveSignInStatus, clerkErrorMessage } from './auth-flow';
 import { clerk } from './clerk';
 
 function fakeSignIn(overrides: Record<string, unknown> = {}) {
@@ -73,3 +73,30 @@ describe('resolveSignInStatus', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 });
+
+describe('clerkErrorMessage', () => {
+  it('returns longMessage when available', () => {
+    const err = { errors: [{ longMessage: 'Password is too short' }] };
+    expect(clerkErrorMessage(err, 'Fallback')).toBe('Password is too short');
+  });
+
+  it('provides friendly message for form_password_incorrect', () => {
+    const err = { errors: [{ code: 'form_password_incorrect', message: 'is incorrect' }] };
+    expect(clerkErrorMessage(err, 'Fallback')).toBe('Password is incorrect. Please try again.');
+  });
+
+  it('provides friendly message for form_identifier_not_found', () => {
+    const err = { errors: [{ code: 'form_identifier_not_found', message: 'not found' }] };
+    expect(clerkErrorMessage(err, 'Fallback')).toBe("Couldn't find an account with that email address.");
+  });
+
+  it('returns generic error.message when no error array exists', () => {
+    const err = new Error('Network timeout');
+    expect(clerkErrorMessage(err, 'Fallback')).toBe('Network timeout');
+  });
+
+  it('returns fallback when no error message or array is provided', () => {
+    expect(clerkErrorMessage({}, 'Fallback message')).toBe('Fallback message');
+  });
+});
+

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { FormSection } from '../../components/FormDrawer';
 import { Button } from '../../components/ui/button';
@@ -8,6 +8,7 @@ import { Input } from '../../components/ui/input';
 export default function AppUpdatesPage() {
   const [version, setVersion] = useState('…');
   const [githubToken, setGithubToken] = useState('');
+  const [showToken, setShowToken] = useState(false);
   const [intervalMinutes, setIntervalMinutes] = useState(1440);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -140,14 +141,25 @@ export default function AppUpdatesPage() {
           {advancedOpen && (
             <div className="space-y-1 pl-1">
               <label className="block text-sm mb-1">Access key (optional)</label>
-              <Input
-                type="password"
-                autoComplete="off"
-                value={githubToken}
-                onChange={(e) => setGithubToken(e.target.value)}
-                placeholder="Leave blank unless your IT team provided a key"
-                className="font-mono text-sm"
-              />
+              <div className="relative">
+                <Input
+                  type={showToken ? 'text' : 'password'}
+                  autoComplete="off"
+                  value={githubToken}
+                  onChange={(e) => setGithubToken(e.target.value)}
+                  placeholder="Leave blank unless your IT team provided a key"
+                  className="font-mono text-sm pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowToken(!showToken)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none p-1 rounded transition-colors"
+                  aria-label={showToken ? 'Hide token' : 'Show token'}
+                  title={showToken ? 'Hide token' : 'Show token'}
+                >
+                  {showToken ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Usually not needed. Only add a key if your IT team asked you to. Then save.
               </p>

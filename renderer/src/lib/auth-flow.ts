@@ -5,7 +5,18 @@ export type SignUpResource = NonNullable<typeof clerk.client>['signUp'];
 export type NavigateFn = (path: string, opts?: { replace?: boolean }) => void;
 
 export function clerkErrorMessage(error: any, fallback: string): string {
-  return error?.errors?.[0]?.longMessage || error?.message || fallback;
+  const firstError = error?.errors?.[0];
+  if (firstError?.longMessage) return firstError.longMessage;
+  if (firstError?.message) {
+    if (firstError.code === 'form_password_incorrect') {
+      return 'Password is incorrect. Please try again.';
+    }
+    if (firstError.code === 'form_identifier_not_found') {
+      return "Couldn't find an account with that email address.";
+    }
+    return firstError.message;
+  }
+  return error?.message || fallback;
 }
 
 export async function activateSession(
