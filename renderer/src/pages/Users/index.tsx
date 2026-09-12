@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldBan, ShieldCheck, UserPlus, Tags, Building2, MailOpen, XCircle, RefreshCw } from 'lucide-react';
+import { ShieldBan, ShieldCheck, UserPlus, Building2, MailOpen, XCircle, RefreshCw } from 'lucide-react';
 import { DataTable, type Column } from '../../components/DataTable';
 import { FilterDropdown } from '../../components/FilterDropdown';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
@@ -33,7 +33,7 @@ const INVITATION_STATUS_BADGE: Record<EInvitationStatus, string> = {
   [EInvitationStatus.Revoked]:  'bg-red-500/10 text-red-500 border-red-500/20',
 };
 
-function buildColumns(): Column<ClerkUser>[] {
+function buildColumns(getRoles: (row: ClerkUser) => string[]): Column<ClerkUser>[] {
   return [
     {
       key: 'avatar',
@@ -80,8 +80,8 @@ function buildColumns(): Column<ClerkUser>[] {
     },
     {
       key: 'roles',
-      label: 'Roles',
-      render: (row) => <UserRolePills roles={row.roles} />,
+      label: 'Roles & Access',
+      render: (row) => <UserRolePills roles={getRoles(row)} />,
     },
     {
       key: 'lastSignInAt',
@@ -145,7 +145,7 @@ export default function UsersPage(): React.JSX.Element {
 
   const extraRowActions = useCallback(
     (row: ClerkUser): ExtraAction[] => [
-      { label: 'Clerk labels (not app access)', icon: <Tags size={14} />, onSelect: () => setRolesTarget(row) },
+      { label: 'Manage Roles & Access', icon: <ShieldCheck size={14} />, onSelect: () => setRolesTarget(row) },
       { label: 'Assign to Org', icon: <Building2 size={14} />, onSelect: () => setAssignTarget(row) },
       row.banned
         ? { label: 'Unban User', icon: <ShieldCheck size={14} />, onSelect: () => setUnbanTarget(row) }
@@ -188,13 +188,30 @@ export default function UsersPage(): React.JSX.Element {
     </>
   );
 
-  const columns = useMemo(() => buildColumns(), []);
+  const getUserRoles = useCallback(
+    (row: ClerkUser): string[] => {
+      if (row.roles && row.roles.length > 0) return row.roles;
+      const isCurrentUser =
+        (user?.clerkUserId && row.clerkUserId === user.clerkUserId) ||
+        (user?.email && row.email && row.email.toLowerCase() === user.email.toLowerCase());
+      if (isCurrentUser) return user?.roles?.length ? user.roles : ['org_admin'];
+      return [];
+    },
+    [user],
+  );
+
+  const columns = useMemo(() => buildColumns(getUserRoles), [getUserRoles]);
+
+  const effectiveRolesTarget = useMemo(() => {
+    if (!rolesTarget) return null;
+    return { ...rolesTarget, roles: getUserRoles(rolesTarget) };
+  }, [rolesTarget, getUserRoles]);
 
   return (
     <div className="flex h-full flex-col gap-4">
       <DataTable<ClerkUser>
         title="Users"
-        description={orgId ? `Clerk users in your organisation — ${rawTotal} total` : 'All Clerk users'}
+        description={orgId ? `Manage team members, roles, and access permissions — ${rawTotal} total` : 'All system users'}
         columns={columns}
         rows={filteredRows}
         total={statusFilter ? filteredRows.length : rawTotal}
@@ -307,7 +324,7 @@ export default function UsersPage(): React.JSX.Element {
       )}
 
       <InviteUserDrawer open={inviteOpen} onClose={() => setInviteOpen(false)} />
-      <UpdateRolesDrawer user={rolesTarget} onClose={() => setRolesTarget(null)} />
+      <UpdateRolesDrawer user={effectiveRolesTarget} onClose={() => setRolesTarget(null)} />
       <AssignOrgDrawer user={assignTarget} onClose={() => setAssignTarget(null)} />
 
       <ConfirmDialog
