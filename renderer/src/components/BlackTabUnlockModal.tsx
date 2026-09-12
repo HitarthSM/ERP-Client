@@ -20,7 +20,13 @@ export function BlackTabUnlockModal({ open, onOpenChange }: { open: boolean; onO
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) setPin('');
+        onOpenChange(isOpen);
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Unlock Restricted Features</DialogTitle>

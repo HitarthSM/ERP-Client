@@ -50,8 +50,6 @@ export function ProductDetailsSection({
   checkoutResult,
   showCheckoutFailureBanner,
 }: ProductDetailsSectionProps) {
-  const PLACEHOLDER_ROWS = 4;
-
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 pb-2 pt-2">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -227,34 +225,20 @@ export function ProductDetailsSection({
                 </tr>
               ))}
 
-              {/* Placeholder empty rows */}
-              {Array.from({ length: Math.max(0, PLACEHOLDER_ROWS - lines.length) }).map((_, i) => (
-                <tr key={`placeholder-${i}`} className="text-muted-foreground/30">
-                  <td className="px-3 py-2.5 text-sm">{lines.length + i + 1}</td>
-                  <td className="px-3 py-2.5 text-sm">Item description</td>
-                  <td className="px-3 py-2.5 text-sm">Category</td>
-                  <td className="px-3 py-2.5 text-sm">1</td>
-                  <td className="px-3 py-2.5">
-                    <div className="flex items-center gap-1 rounded-lg border border-border/40 bg-background/50 px-2 py-1 text-xs w-16">
-                      <span>Pc</span>
-                      <span className="ml-auto">▾</span>
+              {lines.length === 0 && extraCharges.length === 0 && (
+                <tr>
+                  <td colSpan={10} className="py-14 text-center">
+                    <div className="flex flex-col items-center justify-center gap-1.5 text-muted-foreground">
+                      <Scan size={24} className="text-muted-foreground/30 stroke-1" />
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Scan a barcode or search a product above to add items
+                      </p>
                     </div>
                   </td>
-                  <td className="px-3 py-2.5 text-sm">0.00</td>
-                  <td className="px-3 py-2.5 text-sm">0.00</td>
-                  <td className="px-3 py-2.5 text-sm">0.00</td>
-                  <td className="px-3 py-2.5 text-sm">0.00</td>
-                  <td />
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
-
-          {lines.length === 0 && (
-            <div className="flex items-center justify-center py-4 text-xs text-muted-foreground/50">
-              Scan a product or type to search above
-            </div>
-          )}
         </div>
 
         {hasStockIssues && lines.length > 0 && (

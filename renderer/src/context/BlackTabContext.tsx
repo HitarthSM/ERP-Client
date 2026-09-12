@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 type BlackTabContextType = {
@@ -10,8 +11,12 @@ type BlackTabContextType = {
 const BlackTabContext = createContext<BlackTabContextType | null>(null);
 
 const STORAGE_KEY = 'black_tab_unlocked';
+const BLACK_ROUTES = ['/unpublished-stock', '/black-ledger', '/approvals/black-ledger', '/black-stock'];
 
 export function BlackTabProvider({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [isUnlocked, setIsUnlocked] = useState(() => {
     return sessionStorage.getItem(STORAGE_KEY) === 'true';
   });
@@ -21,10 +26,14 @@ export function BlackTabProvider({ children }: { children: ReactNode }) {
   }, [isUnlocked]);
 
   const unlock = (pin: string) => {
-    // TODO: Move PIN validation to backend for better security
-    const correctPin = import.meta.env.VITE_BLACK_TAB_PIN || '';
-    if (pin === correctPin && pin !== '') {
+    const configuredPin = (import.meta.env.VITE_BLACK_TAB_PIN || '').trim();
+    // If a PIN is configured in .env, ONLY that exact PIN is allowed!
+    // Fallback to '1234' only if VITE_BLACK_TAB_PIN is completely empty or not set.
+    const isValid = configuredPin ? pin.trim() === configuredPin : pin.trim() === '1234';
+
+    if (isValid) {
       setIsUnlocked(true);
+      toast.success('Black features unlocked');
       return true;
     }
     toast.error('Incorrect PIN');
@@ -33,6 +42,12 @@ export function BlackTabProvider({ children }: { children: ReactNode }) {
 
   const lock = () => {
     setIsUnlocked(false);
+    sessionStorage.removeItem(STORAGE_KEY);
+    // If currently on any black-restricted screen, evacuate to Dashboard
+    if (BLACK_ROUTES.some((route) => location.pathname.startsWith(route))) {
+      navigate('/', { replace: true });
+    }
+    toast.info('Black features locked');
   };
 
   return (

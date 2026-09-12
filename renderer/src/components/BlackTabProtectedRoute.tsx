@@ -7,7 +7,7 @@ export default function BlackTabProtectedRoute({ children }: { children: ReactNo
   const { isUnlocked } = useBlackTab();
   const { user } = useAuth();
   
-  const isOrgAdmin = user?.roles?.includes('org:admin');
+  const isOrgAdmin = user?.roles?.some((r) => ['org_admin', 'super_admin', 'org:admin'].includes(r));
 
   if (!isUnlocked || !isOrgAdmin) {
     return <Navigate to="/" replace />;
