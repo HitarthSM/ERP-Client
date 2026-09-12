@@ -198,7 +198,6 @@ export const MODULES: ModuleGroup[] = [
     items: [
       { key: 'users', title: 'Users', path: '/users', icon: Users },
       { key: 'roles', title: 'Roles & Permissions', path: '/roles', icon: Lock },
-      { key: 'user-roles', title: 'User Roles', path: '/user-roles', icon: UserCog },
       { key: 'organizations', title: 'Organizations', path: '/organizations', icon: Building2 },
       { key: 'activity-logs', title: 'Activity Logs', path: '/activity-logs', icon: Activity },
       { key: 'audit-log', title: 'Audit Log lookup', path: '/audit-log', icon: History },

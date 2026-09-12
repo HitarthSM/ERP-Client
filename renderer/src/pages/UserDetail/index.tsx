@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Mail, Shield, ShieldCheck, ShieldBan, Clock, Calendar, Building2, Tags, Trash2, UserX } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '../../components/ui/button';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { UpdateRolesDrawer } from '../Users/components/UpdateRolesDrawer';
@@ -8,6 +8,7 @@ import { AssignOrgDrawer } from '../Organizations/components/AssignOrgDrawer';
 import { UserStatusBadge } from '../../components/UserStatusBadge';
 import { UserRolePills } from '../Users/components/UserRolePills';
 import { ClerkUsers } from '../../api';
+import { useAuth } from '../../context/AuthContext';
 
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -52,12 +53,21 @@ export default function UserDetailPage() {
   const [unbanOpen, setUnbanOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  const { user: currentUser } = useAuth();
   const rolesQuery = ClerkUsers.useGetRoles(clerkUserId);
 
   // No get-by-clerk-id endpoint — hydrate from the list cache (page 1). Works for
   // recently-listed users; a direct deep link to a user past page 1 shows "not found".
   const listQuery = ClerkUsers.useList({ page: 1, enabled: true });
   const user = listQuery.data?.data.find((u) => u.clerkUserId === clerkUserId) ?? null;
+
+  const displayRoles = useMemo(() => {
+    if (rolesQuery.data?.roles?.length) return rolesQuery.data.roles;
+    if (user?.roles?.length) return user.roles;
+    const isMe = user && (user.clerkUserId === currentUser?.clerkUserId || (!!currentUser?.email && user.email?.toLowerCase() === currentUser.email.toLowerCase()));
+    if (isMe) return currentUser?.roles?.length ? currentUser.roles : ['org_admin'];
+    return [];
+  }, [rolesQuery.data?.roles, user, currentUser]);
 
   const banMutation = ClerkUsers.useBan();
   const unbanMutation = ClerkUsers.useUnban();
@@ -107,7 +117,7 @@ export default function UserDetailPage() {
 
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={() => setRolesOpen(true)}>
-            <Tags size={14} /> Edit Roles
+            <ShieldCheck size={14} /> Manage Roles & Access
           </Button>
           <Button size="sm" variant="outline" onClick={() => setAssignOpen(true)}>
             <Building2 size={14} /> Assign Org
@@ -148,7 +158,7 @@ export default function UserDetailPage() {
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <UserStatusBadge active={!user.banned} banned={user.banned} />
-            {user.roles.length > 0 && <UserRolePills roles={user.roles} max={5} />}
+            {displayRoles.length > 0 && <UserRolePills roles={displayRoles} max={5} />}
           </div>
         </div>
       </div>
@@ -164,10 +174,10 @@ export default function UserDetailPage() {
           <UserStatusBadge active={!user.banned} banned={user.banned} />
         </DetailRow>
         <DetailRow label="Roles">
-          {rolesQuery.isLoading ? (
+          {rolesQuery.isLoading && displayRoles.length === 0 ? (
             <div className="h-4 w-24 animate-pulse rounded bg-muted" />
           ) : (
-            <UserRolePills roles={rolesQuery.data?.roles ?? user.roles} max={10} />
+            <UserRolePills roles={displayRoles} max={10} />
           )}
         </DetailRow>
       </SectionCard>
@@ -187,7 +197,7 @@ export default function UserDetailPage() {
         </DetailRow>
       </SectionCard>
 
-      <UpdateRolesDrawer user={rolesOpen ? user : null} onClose={() => setRolesOpen(false)} />
+      <UpdateRolesDrawer user={rolesOpen ? { ...user, roles: displayRoles } : null} onClose={() => setRolesOpen(false)} />
       <AssignOrgDrawer user={assignOpen ? user : null} onClose={() => setAssignOpen(false)} />
 
       <ConfirmDialog
