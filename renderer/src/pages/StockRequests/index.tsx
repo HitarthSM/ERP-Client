@@ -94,11 +94,9 @@ export default function StockRequestsPage() {
     }, 300);
   };
 
-  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
   const handleRaiseSubmit = (ev: React.FormEvent) => {
     ev.preventDefault();
-    if (!selectedLocationId || !UUID_RE.test(selectedLocationId) || !raiseProductId || !raiseQty) return;
+    if (!selectedLocationId || !raiseProductId || !raiseQty) return;
     const qty = Number(raiseQty);
     if (qty <= 0) return;
     raiseMutation.mutate(
@@ -174,7 +172,7 @@ export default function StockRequestsPage() {
             <Button
               size="sm"
               disabled={acceptMutation.isPending}
-              onClick={() => UUID_RE.test(selectedLocationId) && acceptMutation.mutate({ id: row.id, acceptingLocationId: selectedLocationId })}
+              onClick={() => acceptMutation.mutate({ id: row.id, acceptingLocationId: selectedLocationId })}
             >
               Accept
             </Button>
