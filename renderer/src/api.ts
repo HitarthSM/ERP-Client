@@ -726,7 +726,10 @@ export const StockTransfers = {
   },
 };
 
+const inventoryBase = createResource<InventoryItem>('/api/v1/inventory', 'inventory', 'Inventory');
+
 export const Inventory = {
+  ...inventoryBase,
   useList(locationId?: string) {
     return useQuery({
       queryKey: ['inventory', 'list', locationId],
