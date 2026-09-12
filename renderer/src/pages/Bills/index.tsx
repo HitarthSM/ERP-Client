@@ -12,6 +12,7 @@ import { CustomerPicker } from '../../components/CustomerPicker';
 import { BillViewDrawer } from './BillViewDrawer';
 import { formatEntityLabel, truncateId } from '../../lib/entityLabel';
 import { loadErrorMessage } from '../../lib/api-error';
+import { extractRef, formatPayment } from '../SalesList/salesHelpers';
 import type { Bill, BillStatus, CreateBillInput, Customer } from '../../types';
 
 const STATUS_FILTERS: Array<BillStatus | 'ALL'> = [
@@ -56,12 +57,6 @@ function walkInLabel(row: Bill): string {
 function money(n: number | undefined | null): string {
   if (n == null || Number.isNaN(Number(n))) return '—';
   return `$${Number(n).toFixed(2)}`;
-}
-
-function extractRef(notes: string | null | undefined): string {
-  if (!notes) return '—';
-  const m = notes.match(/(?:Ref|Pay ref): ([^·]+)/);
-  return m ? m[1].trim() : '—';
 }
 
 function formatDate(d: string | null | undefined): string {
@@ -117,7 +112,7 @@ function exportBillsCsv(rows: Bill[], customerName: Map<string, string>, locatio
     locationName.get(r.locationId) ?? truncateId(r.locationId),
     r.status,
     r.saleType ?? '',
-    r.paymentMethod ?? '',
+    formatPayment(r) !== '—' ? formatPayment(r) : '',
     Number(r.subtotal ?? 0).toFixed(2),
     Number(r.discountAmount ?? 0).toFixed(2),
     Number(r.taxAmount ?? 0).toFixed(2),
@@ -357,7 +352,7 @@ export default function BillsPage() {
       key: 'paymentMethod',
       label: 'Payment',
       render: (row) => (
-        <span className="text-xs capitalize">{row.paymentMethod?.replace(/_/g, ' ').toLowerCase() ?? '—'}</span>
+        <span className="text-xs font-medium">{formatPayment(row)}</span>
       ),
     },
   ];
@@ -382,17 +377,16 @@ export default function BillsPage() {
         toolbar={
           <>
             <span className="text-xs text-muted-foreground">Status:</span>
-            {STATUS_FILTERS.map((s) => (
-              <Button
-                key={s}
-                type="button"
-                size="sm"
-                variant={statusFilter === s ? 'default' : 'outline'}
-                onClick={() => setStatusFilter(s)}
-              >
-                {s === 'ALL' ? 'All' : s}
-              </Button>
-            ))}
+            <FormSelect
+              className="h-8 w-[140px] py-1.5"
+              value={statusFilter}
+              onChange={(v) => setStatusFilter(v as BillStatus | 'ALL')}
+              placeholder="All"
+              options={STATUS_FILTERS.map((s) => ({
+                value: s,
+                label: s === 'ALL' ? 'All' : s,
+              }))}
+            />
             <div className="h-5 w-px bg-border" />
             <span className="text-xs text-muted-foreground">Location:</span>
             <FormSelect

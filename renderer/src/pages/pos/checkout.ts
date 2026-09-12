@@ -384,6 +384,7 @@ export async function createDraftSale(input: SalesCheckoutInput): Promise<DraftS
         customerId: input.customerId?.trim() || undefined,
         walkInName: input.customerId?.trim() ? undefined : walkInName,
         notes: notesParts.length ? notesParts.join(' · ') : undefined,
+        paymentMethod: toBillPaymentMethod(input.paymentMethod),
         items: input.lines.map((l) => ({
           productId: l.productId,
           quantity: l.qty,
