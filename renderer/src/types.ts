@@ -81,6 +81,23 @@ export interface Location {
   updatedAt?: string;
 }
 
+export interface Branch {
+  id: string;
+  organizationId: string;
+  name: string;
+  code?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  phone?: string;
+  userId?: string;
+  isActive: boolean;
+  locationIds?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 // Verified against core-apis source (categories.controller.ts, create/update-category.request.ts,
 // category.response.ts): fields are camelCase, there is no `code` field, and status is the boolean
 // `isActive` (settable only via update, not create).

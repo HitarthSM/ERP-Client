@@ -30,6 +30,7 @@ interface FormState {
   name: string;
   type: LocationType | '';
   parentId: string;
+  branchId: string;
   address: string;
   countryName: string;
   countryId: number | null;
@@ -43,7 +44,7 @@ interface FormState {
 interface PendingImage { file: File; previewUrl: string }
 
 const EMPTY_FORM: FormState = {
-  name: '', type: '', parentId: '',
+  name: '', type: '', parentId: '', branchId: '',
   address: '',
   countryName: '', countryId: null,
   stateName: '', stateId: null,
@@ -107,6 +108,7 @@ export default function LocationsPage() {
   const { data: states = [] } = useListStates(form.countryId);
   const { data: cities = [] } = useListCities(form.stateId);
 
+  const { data: branchEntities = [] } = Branches.useList();
   const { data: branchesData } = Locations.useSearch({ filters: { type: 'branch' } });
   const branches = branchesData?.items ?? [];
 
@@ -175,6 +177,10 @@ export default function LocationsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!editing && !form.branchId) {
+      toast.error('Select a branch for this location');
+      return;
+    }
     const body: Partial<Location> = {
       name: form.name,
       type: form.type || undefined,
@@ -194,7 +200,7 @@ export default function LocationsPage() {
         return;
       }
       const queued = pendingImage?.file;
-      createMutation.mutate(body, {
+      createMutation.mutate({ ...body, branchId: form.branchId || undefined }, {
         onSuccess: async (created) => {
           try { if (queued) await uploadFor(created.id, queued); } catch { /* toasted */ }
           clearPending();
@@ -287,7 +293,7 @@ export default function LocationsPage() {
         title={editing ? `Edit ${entityLabel}` : `Add ${entityLabel}`}
         footer={
           <>
-            <Button type="submit" form="location-form" disabled={isSaving}>
+            <Button type="submit" form="location-form" disabled={isSaving || (!editing && !form.branchId)}>
               {isSaving ? 'Saving…' : 'Save'}
             </Button>
             <Button type="button" variant="outline" onClick={closeDrawer} disabled={uploading}>
@@ -314,6 +320,17 @@ export default function LocationsPage() {
           <Field label="Name" required>
             <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoFocus />
           </Field>
+
+          {!editing && (
+            <Field label="Branch" required>
+              <Select value={form.branchId || undefined} onValueChange={(v) => setForm({ ...form, branchId: v })}>
+                <SelectTrigger><SelectValue placeholder="Select branch…" /></SelectTrigger>
+                <SelectContent>
+                  {branchEntities.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
 
           {!warehouseOnly && !storeOnly && (
             <Field label="Type" required>

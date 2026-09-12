@@ -664,6 +664,8 @@ export function useListUserDirectory(organizationId?: string, enabled = true) {
     refetchOnWindowFocus: false,
   });
 }
+export const Branches = createResource<Branch>('/api/v1/branches', 'branches', 'Branch');
+
 const locationsBase = createResource<Location>('/api/v1/locations', 'locations', 'Location');
 
 export const Locations = {
@@ -720,6 +722,23 @@ export const StockTransfers = {
         queryClient.invalidateQueries({ queryKey: ['stock-transfers'] });
       },
       onError: (error: Error) => toast.error(error.message || 'Failed to create stock transfer'),
+    });
+  },
+};
+
+export const Inventory = {
+  useList(locationId?: string) {
+    return useQuery({
+      queryKey: ['inventory', 'list', locationId],
+      queryFn: () => get<InventoryItem[]>('/api/v1/inventory/list', locationId ? { locationId } : undefined),
+      staleTime: 30_000,
+    });
+  },
+  useByProduct(productId: string | undefined) {
+    return useQuery({
+      queryKey: ['inventory', 'by-product', productId],
+      queryFn: () => get<InventoryItem[]>('/api/v1/inventory/list', { productId: productId as string }),
+      enabled: !!productId,
     });
   },
 };
