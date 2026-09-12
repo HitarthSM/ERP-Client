@@ -680,7 +680,6 @@ export const Locations = {
     return locationsBase.useSearch({ ...params, omitPagination: true });
   },
 };
-export const Branches = createResource<Branch>('/api/v1/branches', 'branches', 'Branch');
 // ── Inventory cluster (hook-based) ─────────────────────────────────────────────
 
 export function useCategoryParents(enabled = true) {
