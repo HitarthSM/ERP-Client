@@ -6,15 +6,23 @@ import { getAppInitial, getAppName } from '../../lib/branding';
 import { cn } from '../../lib/utils';
 import { Tooltip } from '../ui/tooltip';
 import { usePageAccess } from '../../context/PageAccessContext';
+import { useBlackTab } from '../../context/BlackTabContext';
 
 export default function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const location = useLocation();
   const { canAccess, isLoading } = usePageAccess();
+  const { isUnlocked } = useBlackTab();
 
-  const visibleModules = MODULES.map((group) => ({
-    ...group,
-    items: group.items.filter((item) => canAccess(item.key)),
-  })).filter((group) => group.items.length > 0);
+  const visibleModules = MODULES.map((group) => {
+    // If the group is Black Stock and it's not unlocked, filter it out
+    if (group.label === 'Black Stock' && !isUnlocked) {
+      return { ...group, items: [] };
+    }
+    return {
+      ...group,
+      items: group.items.filter((item) => canAccess(item.key)),
+    };
+  }).filter((group) => group.items.length > 0);
 
   const [openGroups, setOpenGroups] = useState<Set<string>>(() => {
     const active = MODULES.find((g) => g.items.some((i) => i.path === location.pathname));

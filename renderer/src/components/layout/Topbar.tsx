@@ -1,9 +1,12 @@
-import { Bell, ChevronDown, LogOut, Moon, Sun } from 'lucide-react';
+import { Bell, ChevronDown, LogOut, Moon, Sun, Lock, Unlock } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Notifications } from '../../api';
 import { useCentrifugo } from '../../hooks/useCentrifugo';
+import { useBlackTab } from '../../context/BlackTabContext';
+import { BlackTabUnlockModal } from '../BlackTabUnlockModal';
+import { useState } from 'react';
 
 function NotificationBell() {
   const { data } = Notifications.useUnreadCount();
@@ -31,6 +34,10 @@ export default function Topbar() {
   const { theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { isUnlocked, lock } = useBlackTab();
+  const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
+  
+  const isOrgAdmin = user?.roles?.some((r) => ['org_admin', 'super_admin', 'org:admin'].includes(r));
 
   useCentrifugo(user);
 
@@ -62,7 +69,26 @@ export default function Topbar() {
           <ChevronDown size={16} className="text-muted-foreground" />
         </summary>
 
-        <div className="absolute right-0 top-full mt-2 w-44 rounded-lg border border-border bg-card shadow-lg p-1 z-20">
+        <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-border bg-card shadow-lg p-1 z-20">
+          {isOrgAdmin && (
+            <button
+              type="button"
+              className="w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent mb-1 transition-colors"
+              onClick={(e) => {
+                const details = e.currentTarget.closest('details');
+                if (details) details.open = false;
+
+                if (isUnlocked) {
+                  lock();
+                } else {
+                  setIsUnlockModalOpen(true);
+                }
+              }}
+            >
+              {isUnlocked ? <Lock size={16} className="text-amber-500" /> : <Unlock size={16} className="text-muted-foreground" />}
+              <span>{isUnlocked ? 'Lock Tab' : 'Show Tab'}</span>
+            </button>
+          )}
           <button
             type="button"
             className="w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
@@ -76,6 +102,11 @@ export default function Topbar() {
           </button>
         </div>
       </details>
+      
+      <BlackTabUnlockModal 
+        open={isUnlockModalOpen} 
+        onOpenChange={setIsUnlockModalOpen} 
+      />
     </header>
   );
 }

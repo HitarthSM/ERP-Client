@@ -22,8 +22,6 @@ export interface PurchaseLineItemsProps {
   showCheckoutFailureBanner: boolean;
 }
 
-const PLACEHOLDER_ROWS = 3;
-
 export function PurchaseLineItems({
   searchRef,
   searchVal,
@@ -178,24 +176,17 @@ export function PurchaseLineItems({
               </tr>
             ))}
 
-            {/* Placeholder rows */}
-            {Array.from({ length: Math.max(0, PLACEHOLDER_ROWS - lines.length) }).map((_, i) => (
-              <tr key={`ph-${i}`} className="text-muted-foreground/30">
-                <td className="px-3 py-2.5 text-sm">{lines.length + i + 1}</td>
-                <td className="px-3 py-2.5 text-sm">Enter product name</td>
-                <td className="px-3 py-2.5 text-sm">Brand</td>
-                <td className="px-3 py-2.5 text-sm">0</td>
-                <td className="px-3 py-2.5 text-sm">e.g. S</td>
-                <td className="px-3 py-2.5 text-sm">kg/pc</td>
-                <td className="px-3 py-2.5 text-sm">0.00</td>
-                <td className="px-3 py-2.5 text-sm">0.00</td>
-                <td className="px-3 py-2.5 text-sm">0%</td>
-                <td className="px-3 py-2.5 text-sm">0.00</td>
-                <td />
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              {lines.length === 0 && extraCharges.length === 0 && (
+                <tr>
+                  <td colSpan={11} className="py-14 text-center">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      No purchase items added yet. Search a product above to add items.
+                    </p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
       </div>
 
       {showCheckoutFailureBanner && checkoutResult && (

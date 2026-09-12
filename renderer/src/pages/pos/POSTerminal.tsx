@@ -4,8 +4,8 @@ import { Check, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { CustomerDetailDrawer } from "../../components/CustomerDetailDrawer";
 import { BillingSettings, Customers, CreditApprovals, ClerkUsers, FleetDrivers, Inventory, Locations, Products, Suppliers } from "../../api";
-import { get } from "../../lib/http";
 import { useAuth } from "../../context/AuthContext";
+import { useBlackTab } from "../../context/BlackTabContext";
 import type {
   Bill,
   ClerkUser,
@@ -357,10 +357,19 @@ export default function POSTerminal({ mode }: { mode: Mode }) {
     logoUrl: user?.organization?.logoUrl,
     orgMeta: [user?.organization?.slug].filter(Boolean).join(" · ") || undefined,
   };
+  const { isUnlocked } = useBlackTab();
   const userRoles = user?.roles ?? [];
-  const canCreateBlackSale = userRoles.some((r) =>
-    ["super_admin", "org_admin", "org_manager"].includes(r),
-  );
+  const canCreateBlackSale =
+    isUnlocked &&
+    userRoles.some((r) =>
+      ["super_admin", "org_admin", "org_manager"].includes(r),
+    );
+
+  useEffect(() => {
+    if (!isUnlocked && saleType === "black") {
+      setSaleType("normal");
+    }
+  }, [isUnlocked, saleType]);
 
   const debouncedCustomerInfo = useDebounce(customerInfo, 300);
 
