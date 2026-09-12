@@ -68,6 +68,7 @@ export interface Location {
   id: string;
   organizationId?: string;
   parentId?: string;
+  branchId?: string;
   name: string;
   type: LocationType;
   imageKey?: string;
