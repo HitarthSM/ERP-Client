@@ -13,16 +13,7 @@ import type { Bill, BillStatus, SaleType } from '../../types';
 const STATUS_FILTERS: Array<BillStatus | 'ALL'> = ['ALL', 'COMPLETED', 'DRAFT', 'INITIATED', 'CANCELLED'];
 const SALE_TYPE_FILTERS: Array<SaleType | 'ALL'> = ['ALL', 'normal', 'credit', 'black'];
 
-function money(n: number | undefined | null): string {
-  if (n == null || Number.isNaN(Number(n))) return '—';
-  return `$${Number(n).toFixed(2)}`;
-}
-
-function extractRef(notes: string | null | undefined): string {
-  if (!notes) return '—';
-  const m = notes.match(/(?:Ref|Pay ref): ([^·]+)/);
-  return m ? m[1].trim() : '—';
-}
+import { money, moneyOrZero, extractRef, formatPayment } from './salesHelpers';
 
 function formatDate(d: string | null | undefined): string {
   if (!d) return '—';
@@ -40,7 +31,7 @@ function exportCsv(rows: Bill[], customerName: Map<string, string>, locationName
     locationName.get(r.locationId) ?? '',
     r.status,
     r.saleType ?? 'normal',
-    r.paymentMethod ?? '',
+    formatPayment(r) !== '—' ? formatPayment(r) : '',
     Number(r.subtotal ?? 0).toFixed(2),
     Number(r.discountAmount ?? 0).toFixed(2),
     Number(r.taxAmount ?? 0).toFixed(2),
@@ -158,14 +149,24 @@ export default function SalesListPage() {
     { key: 'location', label: 'Store', render: (r) => <span className="text-xs">{locationName.get(r.locationId) ?? '—'}</span> },
     { key: 'saleType', label: 'Type', render: (r) => saleTypeBadge(r.saleType) },
     { key: 'status', label: 'Status', render: (r) => statusBadge(r.status) },
-    { key: 'paymentMethod', label: 'Payment', render: (r) => <span className="text-xs capitalize">{r.paymentMethod?.replace(/_/g, ' ').toLowerCase() ?? '—'}</span> },
+    { key: 'paymentMethod', label: 'Payment', render: (r) => <span className="text-xs font-medium">{formatPayment(r)}</span> },
     { key: 'subtotal', label: 'Gross', render: (r) => <span className="tabular-nums">{money(r.subtotal)}</span> },
-    { key: 'discountAmount', label: 'Discount', render: (r) => (
-      <span className={`tabular-nums ${Number(r.discountAmount) > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
-        {Number(r.discountAmount) > 0 ? `-${money(r.discountAmount)}` : '—'}
-      </span>
-    )},
-    { key: 'taxAmount', label: 'Tax', render: (r) => <span className="tabular-nums text-muted-foreground">{Number(r.taxAmount) > 0 ? money(r.taxAmount) : '—'}</span> },
+    { key: 'discountAmount', label: 'Discount', render: (r) => {
+      const d = Number(r.discountAmount ?? 0);
+      return (
+        <span className={`tabular-nums ${d > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+          {d > 0 ? `-${money(d)}` : '$0.00'}
+        </span>
+      );
+    }},
+    { key: 'taxAmount', label: 'Tax', render: (r) => {
+      const t = Number(r.taxAmount ?? 0);
+      return (
+        <span className={`tabular-nums ${t > 0 ? 'text-foreground' : 'text-muted-foreground'}`}>
+          {moneyOrZero(t)}
+        </span>
+      );
+    }},
     { key: 'totalAmount', label: 'Total', render: (r) => <span className="font-semibold tabular-nums">{money(r.totalAmount)}</span> },
   ];
 
@@ -175,8 +176,8 @@ export default function SalesListPage() {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <SummaryCard label="Total Sales" value={money(totals.total)} accent />
         <SummaryCard label="Gross Amount" value={money(totals.subtotal)} />
-        <SummaryCard label="Total Discount" value={totals.discount > 0 ? `-${money(totals.discount)}` : '—'} />
-        <SummaryCard label="Total Tax" value={totals.tax > 0 ? money(totals.tax) : '—'} />
+        <SummaryCard label="Total Discount" value={totals.discount > 0 ? `-${money(totals.discount)}` : '$0.00'} />
+        <SummaryCard label="Total Tax" value={moneyOrZero(totals.tax)} />
       </div>
 
       <DataTable

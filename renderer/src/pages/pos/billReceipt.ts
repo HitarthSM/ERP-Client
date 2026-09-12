@@ -29,7 +29,7 @@ export function billToPosReceipt(
     orgMeta: opts.orgMeta,
     orgPhone: opts.orgPhone,
     orgAddress: opts.orgAddress,
-    paymentMethod: bill.paymentMethod ?? undefined,
+    paymentMethod: bill.paymentMethod ?? (bill.paymentTiming === 'cod' ? 'COD' : undefined),
     saleType: bill.saleType ?? undefined,
     paymentTiming: bill.paymentTiming ?? undefined,
     lines: items.map((item) => ({

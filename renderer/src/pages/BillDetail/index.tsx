@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { formatEntityLabel, truncateId } from '../../lib/entityLabel';
 import { billToPosReceipt, downloadSaleDoc, printSaleDoc } from '../pos/billReceipt';
 import type { BillStatus, PaymentMethod } from '../../types';
+import { formatPayment, moneyOrZero } from '../SalesList/salesHelpers';
 
 function money(n: number | undefined | null): string {
   if (n == null || Number.isNaN(Number(n))) return '—';
@@ -259,7 +260,7 @@ export default function BillDetail() {
         </div>
         <div className="rounded-lg border border-border bg-card p-3">
           <p className="text-xs text-muted-foreground">Tax</p>
-          <p className="text-lg font-semibold">{money(bill.taxAmount)}</p>
+          <p className="text-lg font-semibold">{moneyOrZero(bill.taxAmount)}</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-3">
           <p className="text-xs text-muted-foreground">Total</p>
@@ -267,7 +268,7 @@ export default function BillDetail() {
         </div>
         <div className="rounded-lg border border-border bg-card p-3">
           <p className="text-xs text-muted-foreground">Payment</p>
-          <p className="text-lg font-semibold">{bill.paymentMethod || '—'}</p>
+          <p className="text-lg font-semibold">{formatPayment(bill)}</p>
         </div>
       </div>
 
